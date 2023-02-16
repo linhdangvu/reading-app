@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import { defineComponent, ref } from "vue";
   import {
     IonContent,
     IonButton,
@@ -11,7 +10,6 @@
     IonToolbar,
     IonModal,
   } from "@ionic/vue";
-  // import AboutModal from "../components/AboutModal.vue";
 </script>
 
 <template>
