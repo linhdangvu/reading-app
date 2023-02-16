@@ -1,23 +1,32 @@
-import {
-  createRouter as createClientRouter,
-  createWebHistory,
-} from "vue-router";
+import { createRouter, createWebHistory } from "@ionic/vue-router";
+// import { RouteRecordRaw } from "vue-router";
 
-/**
- * routes are generated using vite-plugin-pages
- * each .vue files located in the ./src/pages are registered as a route
- * @see https://github.com/hannoeru/vite-plugin-pages
- */
-// import routes from "pages-generated";
 import routes from "~pages";
 
+// const routes: Array<RouteRecordRaw> = [
+//   {
+//     path: "/",
+//     redirect: "/home",
+//   },
+//   {
+//     path: "/home",
+//     component: Home,
+//   },
+//   {
+//     path: "/about",
+//     component: About,
+//   },
+//   {
+//     path: "/search",
+//     component: Search,
+//   },
+// ];
 console.log(routes);
 
-export function createRouter() {
-  const router = createClientRouter({
-    history: createWebHistory(),
-    routes,
-  });
+// https://vitejs.dev/guide/env-and-mode.html
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes,
+});
 
-  return router;
-}
+export default router;
