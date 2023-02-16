@@ -17,30 +17,22 @@ export default defineConfig({
     // },
   },
   plugins: [
-    vue({
-      template: {
-        compilerOptions: {
-          isCustomElement: (tag) => {
-            return tag.startsWith("ion-"); // (return true)
-          },
-        },
-      },
-    }),
+    vue(),
     Pages({
       nuxtStyle: false,
       pagesDir: [
         {
-          dir: "src/views",
+          dir: "src/pages",
           baseRoute: "",
         },
       ],
     }),
     Components({
       /* options */
-      dirs: ["src/components"],
-      extensions: ["vue"],
+      dirs: ["documentation", "src/components", "src/layouts"],
+      extensions: ["vue", "md"],
       dts: true,
-      include: [/\.vue$/, /\.vue\?vue/],
+      include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
     }),
   ],
 });
