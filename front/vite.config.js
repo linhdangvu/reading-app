@@ -8,17 +8,11 @@ import path from "path";
 export default defineConfig({
   server: {
     // proxy: {
-    //   "/produits": {
-    //     target: "http://51.255.166.155:1353/logAccordsVente/1664/?format=json",
+    //   "/books": {
+    //     target: "http://localhost:5000/ping",
     //     changeOrigin: true,
     //     secure: false,
-    //     rewrite: (path) => path.replace(/^\/health/, ""),
-    //   },
-    //   "/vente": {
-    //     target: "http://51.255.166.155:1353/logAccordsVente/1664/?format=json",
-    //     changeOrigin: true,
-    //     secure: false,
-    //     rewrite: (path) => path.replace(/^\/health/, ""),
+    //     rewrite: (path) => path.replace(/^\/reading/, ""),
     //   },
     // },
   },

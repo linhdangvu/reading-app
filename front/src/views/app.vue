@@ -10,7 +10,17 @@
     }
   };
 
-  getData();
+  const getDataFlask = async () => {
+    try {
+      const data = await axios.get("http://localhost:5000/ping");
+      console.log(data);
+    } catch (e: any) {
+      console.log(e);
+    }
+  };
+
+  console.log("get flask");
+  getDataFlask();
 </script>
 
 <template><div>We are in the app</div></template>
