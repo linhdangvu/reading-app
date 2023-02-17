@@ -30,7 +30,7 @@ def getTableIndex(listBooks, counts, word2letters,word3letters,tableIndex):
         response_API = requests.get('https://www.gutenberg.org/files/{bookId}/{bookId}-0.txt'.format(bookId=book))
         data = response_API.text
         #### Option 1
-        words = re.findall(r"[A-Za-z]{4,10}", data)
+        words = re.findall(r"[A-Za-z]{4,10}\w+", data)
         for word in words:
             w = word.lower()
             if w in tableIndex:
@@ -72,6 +72,8 @@ def getTableIndex(listBooks, counts, word2letters,word3letters,tableIndex):
 
 tableIndexData = getTableIndex(listBooks, counts, word2letters,word3letters,tableIndex)
 
+
+
 def getBooksData(listBooks):
     booksData = []
     for book in listBooks:
@@ -99,10 +101,6 @@ def search_books(word):
         return "NOT_FOUND"
 
 
-@app.route('/tests/<bookId>/<word>', methods=['GET'])
-def tests(bookId, word):
-    print(id)
-    return jsonify(bookId, word)
 
 if __name__ == '__main__':
     app.run()
