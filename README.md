@@ -64,3 +64,5 @@
 
 Installing env Python
 `virtualenv .env` -->
+
+awk -F "[]"

@@ -23,7 +23,7 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <h1>Search</h1>
+      <SearchPage />
     </ion-content>
   </ion-page>
 </template>

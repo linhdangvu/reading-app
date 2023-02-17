@@ -83,14 +83,20 @@
 <template>
   <div>
     <div>
-      <!-- debounce to to wait 1000 to search       -->
-      <ion-searchbar @keyup.enter="handleSearch($event)"></ion-searchbar>
+      <ion-textarea
+        class="search-textarea"
+        placeholder="Paste some text to find"
+        :auto-grow="false"
+        :height="200"
+      >
+      </ion-textarea>
     </div>
 
-    <div class="book-loading" v-if="isLoading">
+    <!-- <div class="book-loading" v-if="isLoading">
       <ion-spinner name="lines-sharp"></ion-spinner>
     </div>
     <div v-else>
+      <h4>Here is some book have this text:</h4>
       <div v-if="allBooksData.length !== 0" class="book-cards">
         <ion-card v-for="item in allBooksData" :key="item.id" class="book-card">
           <img :alt="item.title" :src="item.formats['image/jpeg']" />
@@ -105,11 +111,19 @@
       <div v-else>
         <h4>No books found</h4>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss">
+  .search-textarea {
+    border: solid 1px black;
+
+    .native-textarea {
+      height: 200px;
+    }
+  }
+
   .book-loading {
     margin: 50% auto;
     text-align: center;
