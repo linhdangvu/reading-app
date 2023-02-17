@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import { defineComponent, ref } from "vue";
   import {
     IonContent,
     IonButton,

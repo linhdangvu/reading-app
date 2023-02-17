@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import { defineComponent } from "vue";
   import {
     IonContent,
     IonButton,
@@ -20,8 +19,7 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <h1>Home</h1>
-      <!-- <ion-button router-link="/about">About</ion-button> -->
+      <HomePage />
     </ion-content>
   </ion-page>
 </template>
