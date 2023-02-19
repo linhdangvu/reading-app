@@ -8,7 +8,6 @@
     IonHeader,
     IonTitle,
     IonToolbar,
-    IonModal,
   } from "@ionic/vue";
 </script>
 
