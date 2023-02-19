@@ -66,10 +66,16 @@
     <div v-else>
       <div v-if="allBooksData.length !== 0" class="book-cards">
         <ion-card v-for="item in allBooksData" :key="item.id" class="book-card">
-          <img :alt="item.title" :src="item.formats['image/jpeg']" />
+          <img
+            v-if="item.formats"
+            :alt="item.title"
+            :src="item.formats['image/jpeg']"
+          />
           <ion-card-header>
-            <ion-card-title>{{ checkTextLong(item.title) }}</ion-card-title>
-            <ion-card-subtitle>{{
+            <ion-card-title v-if="item.title">{{
+              checkTextLong(item.title)
+            }}</ion-card-title>
+            <ion-card-subtitle v-if="item.authors">{{
               item.authors.length !== 0 ? item.authors[0].name : "No author"
             }}</ion-card-subtitle>
           </ion-card-header>

@@ -30,12 +30,14 @@
   const keyword = ref("");
   let tableIndexList: string[] = [];
   const rank = useRanking();
+  const errorSearch = ref("Welcome, let try search");
 
   /* ----------- MOUNTED ---------- */
   onMounted(async () => {
     isLoading.value = true;
     try {
-      booksData = await getBooks("http://127.0.0.1:5000/getbooks");
+      // booksData = await getBooks("http://127.0.0.1:5000/getbooks");
+
       isLoading.value = false;
     } catch (e: any) {
       console.log(e);
@@ -62,6 +64,7 @@
   };
 
   const searchByWords = async (words: string) => {
+    search.value = "";
     isLoading.value = true;
     try {
       await sleep(10);
@@ -81,13 +84,15 @@
   // Doing search with query
   const handleEnterSearch = async (event: any) => {
     const query = event.target.value.toLowerCase();
-    search.value = "";
-    searchByWords(query);
+    if (query === "") {
+      errorSearch.value = "Please write sth to search";
+    } else {
+      searchByWords(query);
+    }
   };
 
   const handleClickSearch = async (words: string) => {
     inputSearch.value = words;
-    search.value = "";
     searchByWords(words);
   };
 
@@ -102,8 +107,10 @@
     if (!isLoading.value) {
       // console.log(booksData);
       if (booksData === "NOT_FOUND") {
+        errorSearch.value = "NO BOOK FOUND";
         return [];
       }
+
       return booksData;
     }
     return [];
@@ -133,7 +140,7 @@
   });
 
   watchEffect(() => {
-    console.log("watch from search", rank.loadingRank.value);
+    console.log("watch from search", inputSearch.value);
   });
 </script>
 
@@ -179,7 +186,7 @@
         </ion-card>
       </div>
       <div v-else>
-        <h4>No books found</h4>
+        <h4>{{ errorSearch }}</h4>
       </div>
     </div>
   </div>
