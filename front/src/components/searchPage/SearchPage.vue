@@ -129,7 +129,7 @@
         return [];
       } else {
         const filteredData = allTableIndexData.value.filter((item: string) => {
-          return item.match(new RegExp(search.value, "i"));
+          return item.match(new RegExp("^" + search.value, "i"));
         });
         return filteredData.length > 5
           ? filteredData.slice(0, 5)
