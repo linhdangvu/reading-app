@@ -8,7 +8,7 @@ import requests, json, logging, re, time, concurrent.futures
 # logging.basicConfig(level=logging.INFO)
 
 listBooks = [49345,56667,1,2,3,4,5,6,7]
-listBooks = [l for l in range(1,100)]
+# listBooks = [l for l in range(1,20)]
 
 # get table index for all book and each book
 def getTableIndex(listBooksData):
