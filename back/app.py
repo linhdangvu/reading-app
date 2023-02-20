@@ -4,7 +4,7 @@ import  json
 # import logging
 from tableIndex import getTableIndex
 from getBooksApi import getBooksData
-from cosine import cosineSimilarity
+from cosine import cosineSearchWord
 from jaccard import jaccardSimilarity
 
 # logging.basicConfig(level=logging.INFO)
@@ -59,7 +59,7 @@ def create_app(debug=True):
     # Use Cosine to have recommend
     @app.route('/cosine', methods=['GET'])
     def cosine():
-        res = cosineSimilarity(historyWords, tableIndexData)
+        res = cosineSearchWord(historyWords, tableIndexData)
         sortedBooks = dict(sorted(res.items(),key=lambda x:x[1], reverse=True))
         # return jsonify(sortedBooks)
         top5 = list(sortedBooks.keys())[0:5]  if len(list(sortedBooks.keys())) > 5 else list(sortedBooks.keys())
