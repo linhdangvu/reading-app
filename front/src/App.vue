@@ -10,10 +10,12 @@
   } from "@ionic/vue";
 
   import { radio, library, search, home } from "ionicons/icons";
+  import { useRoute } from "vue-router";
+  const route = useRoute();
 </script>
 
 <template>
-  <ion-page>
+  <ion-page :key="route.fullPath">
     <ion-tabs>
       <ion-router-outlet></ion-router-outlet>
       <ion-tab-bar slot="bottom">
@@ -22,9 +24,9 @@
           <ion-label>Home</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="library" href="/library">
+        <ion-tab-button tab="library" href="/ranking">
           <ion-icon :icon="library" />
-          <ion-label>Library</ion-label>
+          <ion-label>Ranking</ion-label>
         </ion-tab-button>
 
         <ion-tab-button tab="suggest" href="/suggest">
