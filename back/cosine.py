@@ -19,7 +19,8 @@ def cosineSearchWord(historyWords, tableIndexData):
         index=booksData.keys()).fillna(0)
     for cs in list(booksData.keys())[1:]:
         result[cs] = cosine_similarity(bookDF.loc["history":"history"],bookDF.loc[cs:cs])[0][0]
-    return result
+    sortedBooks = dict(sorted(result.items(),key=lambda x:x[1], reverse=True))
+    return sortedBooks
 
 def getMatrixCloseness(tableIndexData):
     # Init variable
@@ -34,14 +35,14 @@ def getMatrixCloseness(tableIndexData):
         index=booksData.keys()).fillna(0)
     # print(bookDF)
     matrixCloseness = []
-    for c1, b1 in enumerate(list(booksData.keys())):
-        for c2,b2 in enumerate(list(booksData.keys())):
+    for b1 in list(booksData.keys()):
+        for b2 in list(booksData.keys()):
             if b1 != b2:
                 res = cosine_similarity(bookDF.loc[b1:b1],bookDF.loc[b2:b2])[0][0]
                 if res*100 > 50: # > 50% -> add edge
                     matrixCloseness.append((b1,b2))
     
-
+    # print(matrixCloseness)
     # Create the graph representing the reading app
     G = nx.Graph()
     G.add_edges_from(matrixCloseness)
@@ -52,6 +53,7 @@ def getMatrixCloseness(tableIndexData):
 
     # Print the closeness centrality of each node
     for node, closeness in closeness_centrality.items():
-        print(f"Node {node}: Closeness centrality = {closeness}")
         closenessData.append({"bookId": node, "closeness":closeness })
-    return closenessData
+
+    sortedClosenessData = sorted(closenessData, key=lambda d: d['closeness'], reverse=True) 
+    return sortedClosenessData

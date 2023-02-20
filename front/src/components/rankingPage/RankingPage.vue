@@ -45,6 +45,7 @@
     isLoading.value = true;
     try {
       booksData = await getBooks("http://127.0.0.1:5000/cosine");
+
       isLoading.value = false;
     } catch (e: any) {
       console.log(e);

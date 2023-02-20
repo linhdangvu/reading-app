@@ -53,4 +53,4 @@ def getListBooks(listBooks):
         for future in concurrent.futures.as_completed(futures):
             result += future.result()
     print("Threaded get list books time:", time.time() - threaded_start)
-    return result
+    return result, 

@@ -4,7 +4,7 @@ import  json
 # import logging
 from tableIndex import getTableIndex
 from getBooksApi import getBooksData
-from cosine import cosineSearchWord
+from cosine import cosineSearchWord, getMatrixCloseness
 from jaccard import jaccardSimilarity
 
 # logging.basicConfig(level=logging.INFO)
@@ -21,12 +21,12 @@ def create_app(debug=True):
     # enable CORS
     CORS(app, resources={r'/*': {'origins': '*'}})
     app.config['CORS_HEADERS'] = 'Content-Type'
+    app.config['JSON_SORT_KEYS'] = False
 
     # Initial variable
     historyWords = dict()
     
     tableIndexData, booksInfo = getTableIndex(listBooks)
-    
 
     #### GET
     @app.route("/")
@@ -42,9 +42,9 @@ def create_app(debug=True):
     # find book with keyword
     @app.route('/searchbook/<word>', methods=['GET'])
     def search_books(word):
-        # tableIndexData = getTableIndex(listBooks)
+        # tableIndexData, booksInfo = getTableIndex(listBooks)
         if tableIndexData.get(word)!=None:
-            print(jsonify(tableIndexData[word]))
+            # print(jsonify(tableIndexData[word]))
             sortedBooks = dict(sorted(tableIndexData[word].items(),key=lambda x:x[1], reverse=True))
             bookData =  getBooksData(sortedBooks.keys())
             return jsonify(bookData)
@@ -59,29 +59,61 @@ def create_app(debug=True):
     # Use Cosine to have recommend
     @app.route('/cosine', methods=['GET'])
     def cosine():
-        res = cosineSearchWord(historyWords, tableIndexData)
-        sortedBooks = dict(sorted(res.items(),key=lambda x:x[1], reverse=True))
+        booksData = cosineSearchWord(historyWords, tableIndexData)
+        # sortedBooks = dict(sorted(res.items(),key=lambda x:x[1], reverse=True))
         # return jsonify(sortedBooks)
-        top5 = list(sortedBooks.keys())[0:5]  if len(list(sortedBooks.keys())) > 5 else list(sortedBooks.keys())
+        top5 = list(booksData.keys())[0:5]  if len(list(booksData.keys())) > 5 else list(booksData.keys())
         ranking = getBooksData(top5)
-        # return jsonify(ranking)
-        return jsonify(sortedBooks)
+        # print(booksData)
+        return jsonify(ranking)
+        # return jsonify(booksData)
 
     # Use Jaccard to have list of book suggestion and order it
     @app.route('/jaccard', methods=['GET'])
     def jaccard():
         booksData = jaccardSimilarity(historyWords,booksInfo)
 
-        sortedBooks = sorted(booksData, key=lambda d: d['jaccard'], reverse=True) 
+        # sortedBooks = sorted(booksData, key=lambda d: d['jaccard'], reverse=True) 
         sendBookId = []
-
-        for sb in sortedBooks:
+        for sb in booksData:
             if sb['jaccard'] > 0:
                 sendBookId.append(sb['bookId'])
         top5 = sendBookId.slice(0,5)  if len(sendBookId) > 5 else sendBookId
-        # ranking = getBooksData(top5)
-        # return jsonify(ranking)
-        return jsonify(sendBookId, sortedBooks, historyWords)
+        ranking = getBooksData(top5)
+        # print(booksData)
+        return jsonify(ranking)
+        # return jsonify(sendBookId, booksData, historyWords)
+
+    @app.route('/suggestion', methods=['GET'])
+    def suggestion():
+        lastSearch = list(historyWords.keys()).pop() if len(list(historyWords.keys())) != 0 else ""
+        # sortedBooks = dict()
+        sortedBooks = dict({
+            "1": 2, 
+            "6": 2, 
+            "56667": 1
+        })
+        suggestionBooks = list(sortedBooks.keys())
+        if tableIndexData.get(lastSearch)!=None and lastSearch != "":
+            # print(jsonify(tableIndexData[word]))
+            sortedBooks = dict(sorted(tableIndexData[lastSearch].items(),key=lambda x:x[1], reverse=True))
+        closenessData = getMatrixCloseness(tableIndexData)
+        for id,closeData in enumerate(closenessData):
+            if closeData['bookId'] in list(sortedBooks.keys()):
+                addBefore = closenessData[id-1]['bookId']
+                addAfter = closenessData[id+1]['bookId']
+                if id == 0 and str(closenessData[id+1]['bookId']) not in suggestionBooks: 
+                    suggestionBooks.append(closenessData[id+1]['bookId']) 
+                elif id == len(closenessData)-1 and closenessData[id-1]['bookId'] not in suggestionBooks:
+                    suggestionBooks.append(closenessData[id-1]['bookId'])
+                else:
+                    if closenessData[id+1]['bookId'] not in suggestionBooks:
+                        suggestionBooks.append(closenessData[id+1]['bookId']) 
+                    if closenessData[id-1]['bookId'] not in suggestionBooks:
+                        suggestionBooks.append(closenessData[id-1]['bookId']) 
+
+        # return jsonify(sortedBooks, closenessData, suggestionBooks)
+        return jsonify({"suggestion" suggestionBooks, "lastSearch": sortedBooks.keys()})
 
     #### POST
     # send search data
@@ -91,10 +123,9 @@ def create_app(debug=True):
         word = request.json['word']
         lowerWord = word.lower()
         if lowerWord in historyWords:
-            historyWords[word] += 1
+            historyWords[lowerWord] += 1
         else:
-            historyWords[word] = 1
-
+            historyWords[lowerWord] = 1
         return jsonify(historyWords)
     
     ### TEST
