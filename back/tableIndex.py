@@ -6,7 +6,7 @@ from threading import Lock
 def getTableIndex(listBooks):
     tableIndex = dict()
     booksInfo = []
-    listBooksData = getListBooks(listBooks)
+    listBooksData, allBooks = getListBooks(listBooks)
 
     lock = Lock()
 
@@ -51,4 +51,4 @@ def getTableIndex(listBooks):
         for future in concurrent.futures.as_completed(futures):
             booksInfo.append(future.result())
     print("Threaded table index:", time.time() - threaded_start)
-    return tableIndex, booksInfo
+    return tableIndex, booksInfo, allBooks

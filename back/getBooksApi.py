@@ -41,16 +41,16 @@ def getListBooks(listBooks):
                     })
         return res
     
-    data = getBooksData(listBooks)
+    allBooks = getBooksData(listBooks)
     result = []
     
     print("Running get list books:")
     threaded_start = time.time()
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = []
-        for d in data:
+        for d in allBooks:
             futures.append(executor.submit(transformData, d))
         for future in concurrent.futures.as_completed(futures):
             result += future.result()
     print("Threaded get list books time:", time.time() - threaded_start)
-    return result, 
+    return result, allBooks

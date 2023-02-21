@@ -26,7 +26,7 @@ def create_app(debug=True):
     # Initial variable
     historyWords = dict()
     
-    tableIndexData, booksInfo = getTableIndex(listBooks)
+    tableIndexData, booksInfo, allBooks = getTableIndex(listBooks)
 
     #### GET
     @app.route("/")
@@ -36,8 +36,8 @@ def create_app(debug=True):
     # try to get only 10 book
     @app.route('/getbooks', methods=['GET'])
     def get_books():
-        data = getBooksData(listBooks)
-        return jsonify(data)
+        # data = getBooksData(listBooks)
+        return jsonify(allBooks)
 
     # find book with keyword
     @app.route('/searchbook/<word>', methods=['GET'])
@@ -87,33 +87,35 @@ def create_app(debug=True):
     @app.route('/suggestion', methods=['GET'])
     def suggestion():
         lastSearch = list(historyWords.keys()).pop() if len(list(historyWords.keys())) != 0 else ""
-        # sortedBooks = dict()
-        sortedBooks = dict({
-            "1": 2, 
-            "6": 2, 
-            "56667": 1
-        })
-        suggestionBooks = list(sortedBooks.keys())
+        sortedBooks = dict()
+        # sortedBooks = dict({
+        #     "1": 2, 
+        #     "6": 2, 
+        #     "56667": 1
+        # })
+        suggestionBooks = []
         if tableIndexData.get(lastSearch)!=None and lastSearch != "":
             # print(jsonify(tableIndexData[word]))
             sortedBooks = dict(sorted(tableIndexData[lastSearch].items(),key=lambda x:x[1], reverse=True))
         closenessData = getMatrixCloseness(tableIndexData)
         for id,closeData in enumerate(closenessData):
             if closeData['bookId'] in list(sortedBooks.keys()):
-                addBefore = closenessData[id-1]['bookId']
-                addAfter = closenessData[id+1]['bookId']
-                if id == 0 and str(closenessData[id+1]['bookId']) not in suggestionBooks: 
-                    suggestionBooks.append(closenessData[id+1]['bookId']) 
-                elif id == len(closenessData)-1 and closenessData[id-1]['bookId'] not in suggestionBooks:
-                    suggestionBooks.append(closenessData[id-1]['bookId'])
-                else:
-                    if closenessData[id+1]['bookId'] not in suggestionBooks:
+                if id==0:
+                    if closenessData[id+1]['bookId'] not in suggestionBooks and closenessData[id+1]['bookId'] not in list(sortedBooks.keys()):
                         suggestionBooks.append(closenessData[id+1]['bookId']) 
-                    if closenessData[id-1]['bookId'] not in suggestionBooks:
+                elif id==len(closenessData)-1:
+                    if closenessData[id-1]['bookId'] not in suggestionBooks and closenessData[id-1]['bookId'] not in list(sortedBooks.keys()):
+                        suggestionBooks.append(closenessData[id-1]['bookId']) 
+                else:
+                    if closenessData[id+1]['bookId'] not in suggestionBooks and closenessData[id+1]['bookId'] not in list(sortedBooks.keys()):
+                        suggestionBooks.append(closenessData[id+1]['bookId']) 
+                    if closenessData[id-1]['bookId'] not in suggestionBooks and closenessData[id-1]['bookId'] not in list(sortedBooks.keys()):
                         suggestionBooks.append(closenessData[id-1]['bookId']) 
 
-        # return jsonify(sortedBooks, closenessData, suggestionBooks)
-        return jsonify({"suggestion" suggestionBooks, "lastSearch": sortedBooks.keys()})
+        suggestionList = getBooksData(suggestionBooks)
+        lastSearchList = getBooksData(list(sortedBooks.keys()))
+        # return jsonify(sortedBooks,suggestionBooks,list(sortedBooks.keys()), closenessData)
+        return jsonify({"suggestion": suggestionList, "lastSearch": lastSearchList})
 
     #### POST
     # send search data
