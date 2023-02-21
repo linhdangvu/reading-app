@@ -1,13 +1,16 @@
-import requests, re
+import requests, re, concurrent.futures, time
 from getBooksApi import getListBooks
+from threading import Lock
 
 # get table index for all book and each book
 def getTableIndex(listBooks):
     tableIndex = dict()
     booksInfo = []
-    listBooksData = getListBooks(listBooks)
+    listBooksData, allBooks = getListBooks(listBooks)
 
-    for book in listBooksData:
+    lock = Lock()
+
+    def readBook(book):
         response_API = requests.get(book['text_url'])
         data = response_API.text
         #### Option 1: Prendre seulement des mots avec carateres de 4 à 10
@@ -16,7 +19,7 @@ def getTableIndex(listBooks):
 
         for word in words:
             w = word.lower()
-
+            lock.acquire()
             # Count for table index all books
             if w in tableIndex:
                 if book['id'] in tableIndex[w]:
@@ -31,12 +34,21 @@ def getTableIndex(listBooks):
                 occurentCounts[w] += 1
             else:
                 occurentCounts[w] = 1
+            lock.release()
 
-        booksInfo.append({
+        return {
             "bookId": book['id'],
             "words": occurentCounts,
             "totalWords": len(words),
             "totalWordsWithOccur": len(occurentCounts)
-        })    
-    return tableIndex, booksInfo
-
+        }
+    print("Running table index:")
+    threaded_start = time.time()
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = []
+        for book in listBooksData:
+            futures.append(executor.submit(readBook, book))
+        for future in concurrent.futures.as_completed(futures):
+            booksInfo.append(future.result())
+    print("Threaded table index:", time.time() - threaded_start)
+    return tableIndex, booksInfo, allBooks
