@@ -22,8 +22,8 @@
 
   /* ----------- COMPUTED ----------- */
   const suggestionData = computed(() => {
-    if (!isLoading.value && booksData["suggestion"]) {
-      return booksData["suggestion"];
+    if (!isLoading.value) {
+      return booksData;
     }
     return [];
   });

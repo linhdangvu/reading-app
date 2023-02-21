@@ -64,9 +64,8 @@
         rank.setLoadingRank(true);
       }
       await sleep(10);
-      await getSearchData();
-      await sleep(10);
       isLoading.value = false;
+      await getSearchData();
     } catch (e: any) {
       console.log(e);
     }
@@ -96,8 +95,7 @@
   const getSearchData = async () => {
     loadingLastSearch.value = true;
     try {
-      const data = await getBooks("http://127.0.0.1:5000/suggestion");
-      lastSearchList = data["lastSearch"];
+      lastSearchList = await getBooks("http://127.0.0.1:5000/lastsearch");
       loadingLastSearch.value = false;
     } catch (e: any) {
       console.log(e);

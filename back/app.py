@@ -1,16 +1,23 @@
 from flask import Flask, jsonify, render_template,request
 from flask_cors import CORS, cross_origin
-import  json
 # import logging
 from tableIndex import getTableIndex
 from getBooksApi import getBooksData
 from cosine import cosineSearchWord, getMatrixCloseness
 from jaccard import jaccardSimilarity
+import time, concurrent.futures, json, requests
+from threading import Lock
+
 
 # logging.basicConfig(level=logging.INFO)
 
-listBooks = [49345,56667,1,2,3,4,5,6,7]
-# listBooks = [l for l in range(1,20)]
+# listBooks = [49345,56667,1,2,3,4,5,6,7]
+listBooks = [l for l in range(1,20)]
+
+# Initial variable
+historyWords = dict()
+lastSearchWord = dict({"word": ""})
+tableIndexData, booksInfo, allBooks = getTableIndex(listBooks)
 
 def create_app(debug=True):
 
@@ -23,10 +30,7 @@ def create_app(debug=True):
     app.config['CORS_HEADERS'] = 'Content-Type'
     app.config['JSON_SORT_KEYS'] = False
 
-    # Initial variable
-    historyWords = dict()
-    lastSearchWord = dict({"word": ""})
-    tableIndexData, booksInfo, allBooks = getTableIndex(listBooks)
+
 
     #### GET
     @app.route("/")
@@ -36,12 +40,14 @@ def create_app(debug=True):
     # try to get only 10 book
     @app.route('/getbooks', methods=['GET'])
     def get_books():
+        print("Running get_books")
         # data = getBooksData(listBooks)
         return jsonify(allBooks)
 
     # find book with keyword
     @app.route('/searchbook/<word>', methods=['GET'])
     def search_books(word):
+        print("Running search_books POST")
         # tableIndexData, booksInfo = getTableIndex(listBooks)
         if tableIndexData.get(word)!=None:
             # print(jsonify(tableIndexData[word]))
@@ -56,17 +62,14 @@ def create_app(debug=True):
     def table_index():
         return jsonify(list(tableIndexData.keys()))
     
-    # Use Cosine to have recommend
+    # Use Cosine to have suggestion & ranking
     @app.route('/cosine', methods=['GET'])
     def cosine():
+        print("Running cosine")
         booksData = cosineSearchWord(historyWords, tableIndexData)
-        # sortedBooks = dict(sorted(res.items(),key=lambda x:x[1], reverse=True))
-        # return jsonify(sortedBooks)
         top5 = list(booksData.keys())[0:5]  if len(list(booksData.keys())) > 5 else list(booksData.keys())
         ranking = getBooksData(top5)
-        # print(booksData)
         return jsonify(ranking)
-        # return jsonify(booksData)
 
     # Use Jaccard to have list of book suggestion and order it
     @app.route('/jaccard', methods=['GET'])
@@ -84,17 +87,35 @@ def create_app(debug=True):
         return jsonify(ranking)
         # return jsonify(sendBookId, booksData, historyWords)
 
-    @app.route('/suggestion', methods=['GET'])
-    def suggestion():
+    @app.route('/lastsearch', methods=['GET'])
+    def last_search():
+        print('Running last search')
         lastSearch = lastSearchWord["word"]
         sortedBooks = dict()
+        if tableIndexData.get(lastSearch)!=None and lastSearch != "":
+            # print(jsonify(tableIndexData[word]))
+            sortedBooks = dict(sorted(tableIndexData[lastSearch].items(),key=lambda x:x[1], reverse=True))
+        lastSearchList = getBooksData(list(sortedBooks.keys()))
+        return jsonify(lastSearchList)
 
+    @app.route('/suggestion', methods=['GET'])
+    def suggestion():
+        print('Running suggestion')
+
+        # Init variable
+        lastSearch = lastSearchWord["word"]
+        sortedBooks = dict()
         suggestionBooks = []
+        lock = Lock()
+        
+        print("Last search" , lastSearch)
         if tableIndexData.get(lastSearch)!=None and lastSearch != "":
             # print(jsonify(tableIndexData[word]))
             sortedBooks = dict(sorted(tableIndexData[lastSearch].items(),key=lambda x:x[1], reverse=True))
         closenessData = getMatrixCloseness(tableIndexData)
-        for id,closeData in enumerate(closenessData):
+
+        def getSuggestion(id,closeData):
+            lock.acquire()
             if closeData['bookId'] in list(sortedBooks.keys()):
                 if id==0:
                     if closenessData[id+1]['bookId'] not in suggestionBooks and closenessData[id+1]['bookId'] not in list(sortedBooks.keys()):
@@ -107,17 +128,26 @@ def create_app(debug=True):
                         suggestionBooks.append(closenessData[id+1]['bookId']) 
                     if closenessData[id-1]['bookId'] not in suggestionBooks and closenessData[id-1]['bookId'] not in list(sortedBooks.keys()):
                         suggestionBooks.append(closenessData[id-1]['bookId']) 
+            lock.release()
 
-        suggestionList = getBooksData(suggestionBooks)
-        lastSearchList = getBooksData(list(sortedBooks.keys()))
-        # return jsonify(sortedBooks,suggestionBooks,list(sortedBooks.keys()), closenessData)
-        return jsonify({"suggestion": suggestionList, "lastSearch": lastSearchList})
+        print("Running thread suggestion:")
+        threaded_start = time.time()
+        # booksData = []
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = []
+            for id,closeData in enumerate(closenessData):
+                futures.append(executor.submit(getSuggestion, id,closeData))
+        print("Threaded suggestion", time.time() - threaded_start)
+
+        suggestionList = getBooksData(suggestionBooks)      
+        return jsonify(suggestionList)
 
     #### POST
     # send search data
     @app.route('/searchdata', methods=['POST'])
     @cross_origin(origin='*',headers=['content-type'])
     def search_data():
+        print("Running search_data with keyword")
         word = request.json['word']
         lowerWord = word.lower()
         lastSearchWord["word"] = lowerWord
@@ -136,6 +166,8 @@ def create_app(debug=True):
     @app.route('/tindex', methods=['GET'])
     def tindex():
         return jsonify(tableIndexData)
+    
+
             
     return app
 

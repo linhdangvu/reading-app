@@ -45,7 +45,7 @@
 
 <style lang="scss">
   .book-loading {
-    margin: 50% auto;
+    margin: 10% auto;
     text-align: center;
   }
 

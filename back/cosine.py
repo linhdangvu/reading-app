@@ -2,9 +2,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 import numpy as np
 import networkx as nx
+import time, concurrent.futures
 
 # this function use cosine similarity
 def cosineSearchWord(historyWords, tableIndexData):
+    print("Running cosineSearchWord")
     # Init variable
     result = dict()
     booksData = dict({'history':historyWords})
@@ -23,26 +25,55 @@ def cosineSearchWord(historyWords, tableIndexData):
     return sortedBooks
 
 def getMatrixCloseness(tableIndexData):
+    print("Running getMatrixCloseness")
     # Init variable
     booksData = dict()
-    for word in tableIndexData:
+    def transformTableCloseness(word):
         for b in tableIndexData[word].keys(): 
             if b in booksData:
                 booksData[b].update(dict({word:tableIndexData[word][b]}))
             else:
                 booksData.update(dict({b: dict({word:tableIndexData[word][b]})}))
+    print("Running thread transform:")
+    threaded_start = time.time()
+    
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = []
+        for word in tableIndexData:
+            futures.append(executor.submit(transformTableCloseness, word))
+    print("End thread transform", time.time() - threaded_start)
+    
+
     bookDF = pd.DataFrame(booksData.values(),
         index=booksData.keys()).fillna(0)
     # print(bookDF)
     matrixCloseness = []
-    for b1 in list(booksData.keys()):
-        for b2 in list(booksData.keys()):
-            if b1 != b2:
-                res = cosine_similarity(bookDF.loc[b1:b1],bookDF.loc[b2:b2])[0][0]
-                if res*100 > 50: # > 50% -> add edge
-                    matrixCloseness.append((b1,b2))
-    
-    # print(matrixCloseness)
+
+    def getCloseness(b1,b2):
+        if b1 != b2:
+            res = cosine_similarity(bookDF.loc[b1:b1],bookDF.loc[b2:b2])[0][0]
+            if res*100 > 50: # > 50% -> add edge
+                matrixCloseness.append((b1,b2))
+
+    # Loop 1 thread
+    def closenessThread1(b1):
+        # print("Running closenessThread1:")
+        # threaded_closeness_1= time.time()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = []
+            for b2 in list(booksData.keys()):
+                futures.append(executor.submit(getCloseness, b1,b2))
+        # print("End closenessThread1", time.time() - threaded_closeness_1)
+
+    print("Running closenessThread 2:")
+    threaded_closeness_2= time.time()
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = []
+        for b1 in list(booksData.keys()):
+            futures.append(executor.submit(closenessThread1, b1))
+    print("End closenessThread 2", time.time() - threaded_closeness_2)
+
+
     # Create the graph representing the reading app
     G = nx.Graph()
     G.add_edges_from(matrixCloseness)
