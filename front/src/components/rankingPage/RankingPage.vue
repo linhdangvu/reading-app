@@ -83,57 +83,12 @@
       <ion-spinner name="lines-sharp"></ion-spinner>
     </div>
     <div v-else>
-      <div v-if="allBooksData.length !== 0" class="book-cards">
-        <ion-card v-for="item in allBooksData" :key="item.id" class="book-card">
-          <img
-            v-if="item.formats"
-            :alt="item.title"
-            :src="item.formats['image/jpeg']"
-          />
-          <ion-card-header>
-            <ion-card-title v-if="item.title">{{
-              checkTextLong(item.title)
-            }}</ion-card-title>
-            <ion-card-subtitle v-if="item.authors">{{
-              item.authors.length !== 0 ? item.authors[0].name : "No author"
-            }}</ion-card-subtitle>
-          </ion-card-header>
-        </ion-card>
+      <div v-if="allBooksData.length !== 0">
+        <BookCard :data="allBooksData" />
       </div>
-      <div v-else>
+      <div v-else class="error-search">
         <h4>There a no ranking for now.</h4>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-  .book-loading {
-    margin: 50% auto;
-    text-align: center;
-  }
-
-  .book-cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    .book-card {
-      width: 140px;
-
-      img {
-        width: 100%;
-        height: 200px;
-        border: solid 1px black;
-      }
-
-      ion-card-title {
-        font-size: 1rem;
-      }
-
-      ion-card-subtitle {
-        font-size: 0.8rem;
-      }
-    }
-  }
-</style>

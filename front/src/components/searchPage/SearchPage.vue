@@ -30,7 +30,7 @@
   const keyword = ref("");
   let tableIndexList: string[] = [];
   const rank = useRanking();
-  const errorSearch = ref("Welcome, let try search");
+  const errorSearch = ref("Welcome, let search some books");
 
   /* ----------- MOUNTED ---------- */
   onMounted(async () => {
@@ -85,7 +85,7 @@
   const handleEnterSearch = async (event: any) => {
     const query = event.target.value.toLowerCase();
     if (query === "") {
-      errorSearch.value = "Please write sth to search";
+      errorSearch.value = "Please write something to search";
     } else {
       searchByWords(query);
     }
@@ -147,7 +147,7 @@
 <template>
   <div>
     <div v-if="!loadingTableIndex">
-      <!-- debounce to to wait 1000 to search       -->
+      <!-- debounce to to wait 1000 to search -->
       <ion-searchbar
         @ionInput="handleInputSearch($event)"
         @keyup.enter="handleEnterSearch($event)"
@@ -155,6 +155,7 @@
       ></ion-searchbar>
       <ion-list v-if="searchData.length !== 0">
         <ion-item
+          button
           v-for="item in searchData"
           :key="item"
           @click="handleClickSearch(item)"
@@ -170,55 +171,17 @@
       ></ion-skeleton-text>
     </div>
 
+    <!-- BOOKS LIST -->
     <div class="book-loading" v-if="isLoading">
       <ion-spinner name="lines-sharp"></ion-spinner>
     </div>
     <div v-else>
-      <div v-if="allBooksData.length !== 0" class="book-cards">
-        <ion-card v-for="item in allBooksData" :key="item.id" class="book-card">
-          <img :alt="item.title" :src="item.formats['image/jpeg']" />
-          <ion-card-header>
-            <ion-card-title>{{ checkTextLong(item.title) }}</ion-card-title>
-            <ion-card-subtitle>{{
-              item.authors.length !== 0 ? item.authors[0].name : "No author"
-            }}</ion-card-subtitle>
-          </ion-card-header>
-        </ion-card>
+      <div v-if="allBooksData.length !== 0">
+        <BookCard :data="allBooksData" />
       </div>
-      <div v-else>
+      <div v-else class="error-search">
         <h4>{{ errorSearch }}</h4>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-  .book-loading {
-    margin: 50% auto;
-    text-align: center;
-  }
-
-  .book-cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    .book-card {
-      width: 140px;
-
-      img {
-        width: 100%;
-        height: 200px;
-        border: solid 1px black;
-      }
-
-      ion-card-title {
-        font-size: 1rem;
-      }
-
-      ion-card-subtitle {
-        font-size: 0.8rem;
-      }
-    }
-  }
-</style>

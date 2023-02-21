@@ -18,7 +18,7 @@
         <ion-buttons slot="start">
           <ion-back-button></ion-back-button>
         </ion-buttons>
-        <ion-title>Recommend</ion-title>
+        <ion-title>Suggestion</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">

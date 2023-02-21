@@ -42,3 +42,16 @@
     </ion-tabs>
   </ion-page>
 </template>
+
+<style lang="scss">
+  .book-loading {
+    margin: 50% auto;
+    text-align: center;
+  }
+
+  .error-search {
+    margin: 10px auto;
+    padding: 30px 10px;
+    text-align: center;
+  }
+</style>

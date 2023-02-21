@@ -46,10 +46,6 @@
   /* COMPUTED */
   const suggestionData = computed(() => {
     if (!isLoading.value && booksData["suggestion"]) {
-      // console.log(booksData);
-      //   if (booksData === "NOT_FOUND") {
-      //     return [];
-      //   }
       return booksData["suggestion"];
     }
     return [];
@@ -57,10 +53,6 @@
 
   const lastSearchData = computed(() => {
     if (!isLoading.value && booksData["lastSearch"]) {
-      // console.log(booksData);
-      //   if (booksData === "NOT_FOUND") {
-      //     return [];
-      //   }
       return booksData["lastSearch"];
     }
     return [];
@@ -79,95 +71,24 @@
     <div v-else>
       <div>
         <h3>Your last search</h3>
-        <div v-if="lastSearchData.length !== 0" class="book-cards">
-          <ion-card
-            v-for="item in lastSearchData"
-            :key="item.id"
-            class="book-card"
-          >
-            <img
-              v-if="item.formats"
-              :alt="item.title"
-              :src="item.formats['image/jpeg']"
-            />
-            <ion-card-header>
-              <ion-card-title v-if="item.title">{{
-                checkTextLong(item.title)
-              }}</ion-card-title>
-              <ion-card-subtitle v-if="item.authors">{{
-                item.authors.length !== 0 ? item.authors[0].name : "No author"
-              }}</ion-card-subtitle>
-            </ion-card-header>
-          </ion-card>
+        <div v-if="lastSearchData.length !== 0">
+          <BookCard :data="lastSearchData" />
         </div>
-        <div v-else>
-          <h4>No books found</h4>
+
+        <div v-else class="error-search">
+          <h4>You haven't search anything yet.</h4>
         </div>
       </div>
       <div>
-        <h3>Recommendation</h3>
-        <div v-if="suggestionData.length !== 0" class="book-cards">
-          <ion-card
-            v-for="item in suggestionData"
-            :key="item.id"
-            class="book-card"
-          >
-            <img
-              v-if="item.formats"
-              :alt="item.title"
-              :src="item.formats['image/jpeg']"
-            />
-            <ion-card-header>
-              <ion-card-title v-if="item.title">{{
-                checkTextLong(item.title)
-              }}</ion-card-title>
-              <ion-card-subtitle v-if="item.authors">{{
-                item.authors.length !== 0 ? item.authors[0].name : "No author"
-              }}</ion-card-subtitle>
-            </ion-card-header>
-          </ion-card>
+        <h3>Suggestion</h3>
+        <div v-if="suggestionData.length !== 0">
+          <BookCard :data="suggestionData" />
         </div>
-        <div v-else>
-          <h4>No books found</h4>
+
+        <div v-else class="error-search">
+          <h4>No suggestion for now.</h4>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-  .book-loading {
-    margin: 50% auto;
-    text-align: center;
-  }
-
-  .book-cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    .book-card {
-      width: 140px;
-
-      img {
-        width: 100%;
-        height: 200px;
-        border: solid 1px black;
-      }
-
-      ion-card-title {
-        font-size: 1rem;
-      }
-
-      ion-card-subtitle {
-        font-size: 0.8rem;
-      }
-    }
-  }
-
-  /* iOS places the subtitle above the title */
-  ion-card-header.ios {
-    display: flex;
-    flex-flow: column-reverse;
-  }
-</style>
