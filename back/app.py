@@ -88,11 +88,7 @@ def create_app(debug=True):
     def suggestion():
         lastSearch = list(historyWords.keys()).pop() if len(list(historyWords.keys())) != 0 else ""
         sortedBooks = dict()
-        # sortedBooks = dict({
-        #     "1": 2, 
-        #     "6": 2, 
-        #     "56667": 1
-        # })
+
         suggestionBooks = []
         if tableIndexData.get(lastSearch)!=None and lastSearch != "":
             # print(jsonify(tableIndexData[word]))
