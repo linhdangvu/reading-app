@@ -12,6 +12,7 @@
   import sleep from "../../utils/sleep";
   import { getBooks, sendSearchData } from "../../composable/useApi";
   import { useRanking } from "../../stores/ranking";
+  import { levenshteinDistance } from "../../utils/leveashtein";
 
   /* INITIAL VARIABLE */
   const isLoading = ref(true);
@@ -138,6 +139,26 @@
     return [];
   });
 
+  const autoCompleteData = computed(() => {
+    if (search.value && searchData.value.length === 0) {
+      // do auto comptele
+      const filterDistance = allTableIndexData.value.map((item: string) => {
+        return {
+          word: item,
+          distance: levenshteinDistance(search.value, item),
+        };
+      });
+
+      filterDistance.sort((a: any, b: any) => a.distance - b.distance);
+
+      // console.log("Check", filterDistance);
+      return filterDistance.length > 5
+        ? filterDistance.slice(0, 5)
+        : filterDistance;
+    }
+    return [];
+  });
+
   const lastSearchData = computed(() => {
     if (!loadingLastSearch.value) {
       return lastSearchList;
@@ -165,6 +186,20 @@
           <ion-label>{{ item }}</ion-label>
         </ion-item>
       </ion-list>
+
+      <div v-else-if="autoCompleteData.length !== 0 && searchData.length === 0">
+        <h5 class="search-title">Do you mean this word ?</h5>
+        <ion-list>
+          <ion-item
+            button
+            v-for="(item, id) in autoCompleteData"
+            :key="id"
+            @click="handleClickSearch(item.word)"
+          >
+            <ion-label>{{ item.word }}</ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
     </div>
     <div v-else>
       <ion-skeleton-text
@@ -186,7 +221,7 @@
       </div>
     </div>
 
-    <h3>Your last search</h3>
+    <h3 class="search-title">Your last search</h3>
     <div v-if="!loadingLastSearch">
       <div v-if="lastSearchList && lastSearchData.length !== 0">
         <BookCard :data="lastSearchData" />
@@ -200,3 +235,10 @@
     </div>
   </div>
 </template>
+
+<style scoped>
+  .search-title {
+    font-weight: 800;
+    text-align: center;
+  }
+</style>
