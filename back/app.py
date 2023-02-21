@@ -2,7 +2,7 @@ from flask import Flask, jsonify, render_template,request
 from flask_cors import CORS, cross_origin
 # import logging
 from tableIndex import getTableIndex
-from getBooksApi import getBooksData
+from getBooksApi import getBooksData, getBooksThread
 from cosine import cosineSearchWord, getMatrixCloseness
 from jaccard import jaccardSimilarity
 import time, concurrent.futures, json, requests
@@ -11,8 +11,8 @@ from threading import Lock
 
 # logging.basicConfig(level=logging.INFO)
 
-# listBooks = [49345,56667,1,2,3,4,5,6,7]
-listBooks = [l for l in range(1,20)]
+listBooks = [49345,56667,1,2,3,4,5,6,7]
+# listBooks = [l for l in range(1,20)]
 
 # Initial variable
 historyWords = dict()
@@ -24,13 +24,12 @@ def create_app(debug=True):
     # create and configure the app
     app = Flask(__name__)
     app.config.from_object(__name__)
+    app.config['JSON_SORT_KEYS'] = False
 
     # enable CORS
     CORS(app, resources={r'/*': {'origins': '*'}})
     app.config['CORS_HEADERS'] = 'Content-Type'
-    app.config['JSON_SORT_KEYS'] = False
-
-
+    
 
     #### GET
     @app.route("/")
@@ -66,9 +65,13 @@ def create_app(debug=True):
     @app.route('/cosine', methods=['GET'])
     def cosine():
         print("Running cosine")
+        ranking = []
         booksData = cosineSearchWord(historyWords, tableIndexData)
-        top5 = list(booksData.keys())[0:5]  if len(list(booksData.keys())) > 5 else list(booksData.keys())
-        ranking = getBooksData(top5)
+        for id,val in enumerate(list(booksData)):
+            if id > 5:
+                break
+            else:
+                ranking.append(getBooksThread(val))
         return jsonify(ranking)
 
     # Use Jaccard to have list of book suggestion and order it
