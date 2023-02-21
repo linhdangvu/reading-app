@@ -1,34 +1,13 @@
 <script setup lang="ts">
-  import axios from "axios";
-  import {
-    IonCard,
-    IonCardContent,
-    IonCardHeader,
-    IonCardSubtitle,
-    IonCardTitle,
-    IonChip,
-    IonSearchbar,
-    IonSkeletonText,
-    IonItem,
-    IonList,
-    IonLabel,
-    IonSpinner,
-  } from "@ionic/vue";
-  import { onMounted, watchEffect } from "@vue/runtime-core";
+  import { IonSpinner } from "@ionic/vue";
+  import { onMounted } from "@vue/runtime-core";
   import { computed, ref } from "vue";
-  import sleep from "../../utils/sleep";
-  import checkTextLong from "../../utils/useText";
+  // import sleep from "../../utils/sleep";
   import { getBooks } from "../../../src/composable/useApi";
 
   /* INITIAL VARIABLE */
   const isLoading = ref(true);
-  const loadingTableIndex = ref(false);
-  const showSuggestion = ref(false);
-  const search = ref("");
-  const inputSearch = ref("");
   let booksData: any[] | string = [];
-  const keyword = ref("");
-  let tableIndexList: string[] = [];
 
   /* ----------- MOUNTED ---------- */
   onMounted(async () => {
@@ -44,17 +23,12 @@
   /* COMPUTED */
   const allBooksData = computed(() => {
     if (!isLoading.value) {
-      // console.log(booksData);
       if (booksData === "NOT_FOUND") {
         return [];
       }
       return booksData;
     }
     return [];
-  });
-
-  watchEffect(() => {
-    console.log(search.value);
   });
 </script>
 

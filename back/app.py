@@ -25,7 +25,7 @@ def create_app(debug=True):
 
     # Initial variable
     historyWords = dict()
-    
+    lastSearchWord = dict({"word": ""})
     tableIndexData, booksInfo, allBooks = getTableIndex(listBooks)
 
     #### GET
@@ -86,7 +86,7 @@ def create_app(debug=True):
 
     @app.route('/suggestion', methods=['GET'])
     def suggestion():
-        lastSearch = list(historyWords.keys()).pop() if len(list(historyWords.keys())) != 0 else ""
+        lastSearch = lastSearchWord["word"]
         sortedBooks = dict()
 
         suggestionBooks = []
@@ -120,6 +120,7 @@ def create_app(debug=True):
     def search_data():
         word = request.json['word']
         lowerWord = word.lower()
+        lastSearchWord["word"] = lowerWord
         if lowerWord in historyWords:
             historyWords[lowerWord] += 1
         else:

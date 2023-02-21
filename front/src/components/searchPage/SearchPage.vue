@@ -1,11 +1,5 @@
 <script setup lang="ts">
   import {
-    IonCard,
-    IonCardContent,
-    IonCardHeader,
-    IonCardSubtitle,
-    IonCardTitle,
-    IonChip,
     IonSearchbar,
     IonSkeletonText,
     IonItem,
@@ -13,31 +7,29 @@
     IonLabel,
     IonSpinner,
   } from "@ionic/vue";
-  import { onMounted, watchEffect } from "@vue/runtime-core";
+  import { onMounted } from "@vue/runtime-core";
   import { computed, ref } from "vue";
   import sleep from "../../utils/sleep";
   import { getBooks, sendSearchData } from "../../composable/useApi";
-  import axios from "axios";
   import { useRanking } from "../../stores/ranking";
 
   /* INITIAL VARIABLE */
   const isLoading = ref(true);
+  const loadingLastSearch = ref(true);
   const loadingTableIndex = ref(false);
-  const showSuggestion = ref(false);
   const search = ref("");
   const inputSearch = ref("");
   let booksData: any[] | string = [];
-  const keyword = ref("");
   let tableIndexList: string[] = [];
   const rank = useRanking();
   const errorSearch = ref("Welcome, let search some books");
+  let lastSearchList: any[] = [];
 
   /* ----------- MOUNTED ---------- */
   onMounted(async () => {
     isLoading.value = true;
     try {
       // booksData = await getBooks("http://127.0.0.1:5000/getbooks");
-
       isLoading.value = false;
     } catch (e: any) {
       console.log(e);
@@ -45,24 +37,20 @@
   });
 
   onMounted(async () => {
+    await getSearchData();
+  });
+
+  onMounted(async () => {
     loadingTableIndex.value = true;
     try {
       tableIndexList = await getBooks("http://127.0.0.1:5000/tableindex");
-      // console.log(tableIndexList);
       loadingTableIndex.value = false;
     } catch (e: any) {
       console.log(e);
     }
   });
 
-  /* FUNCTIONS */
-  const checkTextLong = (text: string) => {
-    if (text.split("").length >= 50) {
-      return text.slice(0, 51) + "...";
-    }
-    return text;
-  };
-
+  /* ---------- FUNCTIONS ---------- */
   const searchByWords = async (words: string) => {
     search.value = "";
     isLoading.value = true;
@@ -74,6 +62,8 @@
         await sendSearchData("http://127.0.0.1:5000/searchdata", words);
         rank.setLoadingRank(true);
       }
+      await sleep(10);
+      await getSearchData();
       await sleep(10);
       isLoading.value = false;
     } catch (e: any) {
@@ -102,15 +92,24 @@
     search.value = query;
   };
 
-  /* COMPUTED */
+  const getSearchData = async () => {
+    loadingLastSearch.value = true;
+    try {
+      const data = await getBooks("http://127.0.0.1:5000/suggestion");
+      lastSearchList = data["lastSearch"];
+      loadingLastSearch.value = false;
+    } catch (e: any) {
+      console.log(e);
+    }
+  };
+
+  /* ---------- COMPUTED ---------- */
   const allBooksData = computed(() => {
     if (!isLoading.value) {
-      // console.log(booksData);
       if (booksData === "NOT_FOUND") {
         errorSearch.value = "NO BOOK FOUND";
         return [];
       }
-
       return booksData;
     }
     return [];
@@ -139,8 +138,11 @@
     return [];
   });
 
-  watchEffect(() => {
-    console.log("watch from search", inputSearch.value);
+  const lastSearchData = computed(() => {
+    if (!loadingLastSearch.value) {
+      return lastSearchList;
+    }
+    return [];
   });
 </script>
 
@@ -182,6 +184,19 @@
       <div v-else class="error-search">
         <h4>{{ errorSearch }}</h4>
       </div>
+    </div>
+
+    <h3>Your last search</h3>
+    <div v-if="!loadingLastSearch">
+      <div v-if="lastSearchList && lastSearchData.length !== 0">
+        <BookCard :data="lastSearchData" />
+      </div>
+      <div v-else class="error-search">
+        <h4>You haven't search anything yet.</h4>
+      </div>
+    </div>
+    <div v-else class="book-loading">
+      <ion-spinner name="lines-sharp"></ion-spinner>
     </div>
   </div>
 </template>

@@ -1,6 +1,13 @@
 <script setup lang="ts">
   import checkTextLong from "../../utils/useText";
   import { Book } from "/@src/interfaces/books.interface";
+  import {
+    IonCard,
+    IonCardHeader,
+    IonCardContent,
+    IonCardSubtitle,
+    IonCardTitle,
+  } from "@ionic/vue";
 
   const props = defineProps<{
     data: Book[];

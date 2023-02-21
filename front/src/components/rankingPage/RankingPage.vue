@@ -1,29 +1,9 @@
 <script setup lang="ts">
-  import {
-    IonCard,
-    IonCardContent,
-    IonCardHeader,
-    IonCardSubtitle,
-    IonCardTitle,
-    IonChip,
-    IonSearchbar,
-    IonSkeletonText,
-    IonItem,
-    IonList,
-    IonLabel,
-    IonSpinner,
-  } from "@ionic/vue";
-  import {
-    onMounted,
-    onUnmounted,
-    onUpdated,
-    watchEffect,
-  } from "@vue/runtime-core";
+  import { IonSpinner } from "@ionic/vue";
+  import { onMounted, watchEffect } from "@vue/runtime-core";
   import { computed, ref } from "vue";
-  import sleep from "../../utils/sleep";
-  import checkTextLong from "../../utils/useText";
+  // import sleep from "../../utils/sleep";
   import { getBooks } from "../../composable/useApi";
-  import axios from "axios";
   import { useRanking } from "../../stores/ranking";
 
   /* INITIAL VARIABLE */
@@ -36,16 +16,11 @@
     await getRankingBooks();
   });
 
-  onUnmounted(() => {
-    console.log("Ranking is unmount");
-  });
-
   /* FUNCTIONS */
   const getRankingBooks = async () => {
     isLoading.value = true;
     try {
       booksData = await getBooks("http://127.0.0.1:5000/cosine");
-
       isLoading.value = false;
     } catch (e: any) {
       console.log(e);
@@ -55,7 +30,6 @@
   /* COMPUTED */
   const allBooksData = computed(() => {
     if (!isLoading.value) {
-      // console.log(booksData);
       if (booksData === "NOT_FOUND") {
         return [];
       }
@@ -64,12 +38,8 @@
     return [];
   });
 
-  onUpdated(() => {
-    console.log("Update ranking", rank.loadingRank);
-  });
-
   watchEffect(async () => {
-    console.log("Watch ranking", rank.loadingRank);
+    // console.log("Watch ranking", rank.loadingRank);
     if (rank.loadingRank) {
       await getRankingBooks();
       rank.setLoadingRank(false);

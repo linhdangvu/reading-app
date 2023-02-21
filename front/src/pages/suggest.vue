@@ -1,9 +1,6 @@
 <script setup lang="ts">
   import {
     IonContent,
-    IonButton,
-    IonButtons,
-    IonBackButton,
     IonPage,
     IonHeader,
     IonTitle,
@@ -15,9 +12,6 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-back-button></ion-back-button>
-        </ion-buttons>
         <ion-title>Suggestion</ion-title>
       </ion-toolbar>
     </ion-header>
