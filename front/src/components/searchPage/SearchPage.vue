@@ -60,7 +60,9 @@
       booksData = await getBooks("http://127.0.0.1:5000/searchbook/" + words);
       // console.log(booksData);
       if (booksData !== "NOT_FOUND") {
-        await sendSearchData("http://127.0.0.1:5000/searchdata", words);
+        await sendSearchData("http://127.0.0.1:5000/searchdata", {
+          word: words,
+        });
         rank.setLoadingRank(true);
       }
       await sleep(10);
