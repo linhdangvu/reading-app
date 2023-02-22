@@ -1,0 +1,3 @@
+ 
+ 
+ avoir deux mots côte à côte séparés par des espaces     ->     ([A-Za-z])\w+\s([a-z])\w+
