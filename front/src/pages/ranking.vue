@@ -12,7 +12,7 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Hot search</ion-title>
+        <ion-title>Top 10 hot search</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">

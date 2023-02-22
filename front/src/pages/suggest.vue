@@ -12,7 +12,7 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Suggestion</ion-title>
+        <ion-title>Books you may like...</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">

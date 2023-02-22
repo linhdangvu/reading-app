@@ -38,6 +38,7 @@
       <ion-spinner name="lines-sharp"></ion-spinner>
     </div>
     <div v-else>
+      <h3>Here is the list of {{ allBooksData.length }} books:</h3>
       <div v-if="allBooksData.length !== 0">
         <BookCard :data="allBooksData" />
       </div>
