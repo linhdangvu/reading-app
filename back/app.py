@@ -18,6 +18,9 @@ listBooks = [49345,56667,1,2,3,4,5,6,7]
 historyWords = dict()
 lastSearchWord = dict({"word": ""})
 tableIndexData, booksInfo, allBooks = getTableIndex(listBooks)
+suggestionObject = dict({"data": [],"status" : True})
+lastSearchObject = dict({"data": [],"status" : True})
+rankingObject = dict({"data": [],"status" : True})
 
 def create_app(debug=True):
 
@@ -30,7 +33,6 @@ def create_app(debug=True):
     CORS(app, resources={r'/*': {'origins': '*'}})
     app.config['CORS_HEADERS'] = 'Content-Type'
     
-
     #### GET
     @app.route("/")
     def index():
@@ -65,14 +67,17 @@ def create_app(debug=True):
     @app.route('/cosine', methods=['GET'])
     def cosine():
         print("Running cosine")
-        ranking = []
-        booksData = cosineSearchWord(historyWords, tableIndexData)
-        for id,val in enumerate(list(booksData)):
-            if id > 5:
-                break
-            else:
-                ranking.append(getBooksThread(val))
-        return jsonify(ranking)
+        if rankingObject["status"]:
+            ranking = []
+            booksData = cosineSearchWord(historyWords, tableIndexData)
+            for id,val in enumerate(list(booksData)):
+                if id > 5:
+                    break
+                else:
+                    ranking.append(getBooksThread(val))
+            rankingObject["data"] = ranking
+            rankingObject["status"] = False
+        return jsonify(rankingObject["data"])
 
     # Use Jaccard to have list of book suggestion and order it
     @app.route('/jaccard', methods=['GET'])
@@ -93,57 +98,60 @@ def create_app(debug=True):
     @app.route('/lastsearch', methods=['GET'])
     def last_search():
         print('Running last search')
-        lastSearch = lastSearchWord["word"]
-        sortedBooks = dict()
-        if tableIndexData.get(lastSearch)!=None and lastSearch != "":
-            # print(jsonify(tableIndexData[word]))
-            sortedBooks = dict(sorted(tableIndexData[lastSearch].items(),key=lambda x:x[1], reverse=True))
-        lastSearchList = getBooksData(list(sortedBooks.keys()))
-        return jsonify(lastSearchList)
+        if lastSearchObject["status"]:
+            lastSearch = lastSearchWord["word"]
+            sortedBooks = dict()
+            if tableIndexData.get(lastSearch)!=None and lastSearch != "":
+                # print(jsonify(tableIndexData[word]))
+                sortedBooks = dict(sorted(tableIndexData[lastSearch].items(),key=lambda x:x[1], reverse=True))
+            lastSearchObject["data"] = getBooksData(list(sortedBooks.keys()))
+            lastSearchObject["status"] = False
+        return jsonify(lastSearchObject["data"])
 
     @app.route('/suggestion', methods=['GET'])
     def suggestion():
         print('Running suggestion')
+        if suggestionObject["status"]:
+            # Init variable
+            lastSearch = lastSearchWord["word"]
+            sortedBooks = dict()
+            suggestionBooks = []
+            lock = Lock()
+            
+            print("Last search" , lastSearch)
+            if tableIndexData.get(lastSearch)!=None and lastSearch != "":
+                # print(jsonify(tableIndexData[word]))
+                sortedBooks = dict(sorted(tableIndexData[lastSearch].items(),key=lambda x:x[1], reverse=True))
+            closenessData = getMatrixCloseness(tableIndexData)
 
-        # Init variable
-        lastSearch = lastSearchWord["word"]
-        sortedBooks = dict()
-        suggestionBooks = []
-        lock = Lock()
-        
-        print("Last search" , lastSearch)
-        if tableIndexData.get(lastSearch)!=None and lastSearch != "":
-            # print(jsonify(tableIndexData[word]))
-            sortedBooks = dict(sorted(tableIndexData[lastSearch].items(),key=lambda x:x[1], reverse=True))
-        closenessData = getMatrixCloseness(tableIndexData)
+            def getSuggestion(id,closeData):
+                lock.acquire()
+                if closeData['bookId'] in list(sortedBooks.keys()):
+                    if id==0:
+                        if closenessData[id+1]['bookId'] not in suggestionBooks and closenessData[id+1]['bookId'] not in list(sortedBooks.keys()):
+                            suggestionBooks.append(closenessData[id+1]['bookId']) 
+                    elif id==len(closenessData)-1:
+                        if closenessData[id-1]['bookId'] not in suggestionBooks and closenessData[id-1]['bookId'] not in list(sortedBooks.keys()):
+                            suggestionBooks.append(closenessData[id-1]['bookId']) 
+                    else:
+                        if closenessData[id+1]['bookId'] not in suggestionBooks and closenessData[id+1]['bookId'] not in list(sortedBooks.keys()):
+                            suggestionBooks.append(closenessData[id+1]['bookId']) 
+                        if closenessData[id-1]['bookId'] not in suggestionBooks and closenessData[id-1]['bookId'] not in list(sortedBooks.keys()):
+                            suggestionBooks.append(closenessData[id-1]['bookId']) 
+                lock.release()
 
-        def getSuggestion(id,closeData):
-            lock.acquire()
-            if closeData['bookId'] in list(sortedBooks.keys()):
-                if id==0:
-                    if closenessData[id+1]['bookId'] not in suggestionBooks and closenessData[id+1]['bookId'] not in list(sortedBooks.keys()):
-                        suggestionBooks.append(closenessData[id+1]['bookId']) 
-                elif id==len(closenessData)-1:
-                    if closenessData[id-1]['bookId'] not in suggestionBooks and closenessData[id-1]['bookId'] not in list(sortedBooks.keys()):
-                        suggestionBooks.append(closenessData[id-1]['bookId']) 
-                else:
-                    if closenessData[id+1]['bookId'] not in suggestionBooks and closenessData[id+1]['bookId'] not in list(sortedBooks.keys()):
-                        suggestionBooks.append(closenessData[id+1]['bookId']) 
-                    if closenessData[id-1]['bookId'] not in suggestionBooks and closenessData[id-1]['bookId'] not in list(sortedBooks.keys()):
-                        suggestionBooks.append(closenessData[id-1]['bookId']) 
-            lock.release()
+            print("Running thread suggestion:")
+            threaded_start = time.time()
+            # booksData = []
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = []
+                for id,closeData in enumerate(closenessData):
+                    futures.append(executor.submit(getSuggestion, id,closeData))
+            print("Threaded suggestion", time.time() - threaded_start)
 
-        print("Running thread suggestion:")
-        threaded_start = time.time()
-        # booksData = []
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
-            for id,closeData in enumerate(closenessData):
-                futures.append(executor.submit(getSuggestion, id,closeData))
-        print("Threaded suggestion", time.time() - threaded_start)
-
-        suggestionList = getBooksData(suggestionBooks)      
-        return jsonify(suggestionList)
+            suggestionObject["data"] = getBooksData(suggestionBooks)     
+            suggestionObject["status"] = False
+        return jsonify(suggestionObject["data"])
 
     #### POST
     # send search data
@@ -158,6 +166,9 @@ def create_app(debug=True):
             historyWords[lowerWord] += 1
         else:
             historyWords[lowerWord] = 1
+        lastSearchObject["status"] = True
+        suggestionObject["status"] = True
+        rankingObject["status"] = True
         return jsonify(historyWords)
     
     ### TEST
