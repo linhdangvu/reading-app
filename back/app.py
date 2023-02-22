@@ -8,19 +8,25 @@ from jaccard import jaccardSimilarity
 import time, concurrent.futures, json, requests
 from threading import Lock
 
-
+##########################################
+# ---------- INITIAL VARIABLE ---------- #
+##########################################
 # logging.basicConfig(level=logging.INFO)
-
 listBooks = [49345,56667,1,2,3,4,5,6,7]
 # listBooks = [l for l in range(1,20)]
-
-# Initial variable
 historyWords = dict()
+clickedBooks = dict()
 lastSearchWord = dict({"word": ""})
-tableIndexData, booksInfo, allBooks = getTableIndex(listBooks)
+# tableIndexData, booksInfo, allBooks = getTableIndex(listBooks)
+# closenessData = getMatrixCloseness(tableIndexData)
 suggestionObject = dict({"data": [],"status" : True})
 lastSearchObject = dict({"data": [],"status" : True})
 rankingObject = dict({"data": [],"status" : True})
+booksInfoObject = dict({"data": [],"status" : True})
+allBooksoObject = dict({"data": [],"status" : True})
+closenessDataObject = dict({"data": [],"status" : True})
+tableIndexDataObject =   dict({"data": dict(),"status" : True})
+loadingBack = dict({"status": True})
 
 def create_app(debug=True):
 
@@ -32,10 +38,24 @@ def create_app(debug=True):
     # enable CORS
     CORS(app, resources={r'/*': {'origins': '*'}})
     app.config['CORS_HEADERS'] = 'Content-Type'
-    
-    #### GET
+
+
+    #############################
+    # ---------- GET ---------- #
+    #############################
+
     @app.route("/")
     def index():
+        if loadingBack['status']:
+            print('START LOADING DATA')
+            tableIndexDataObject['data'], booksInfoObject['data'], allBooksoObject['data'] = getTableIndex(listBooks)
+            tableIndexDataObject['status'] = False
+            booksInfoObject['status'] = False
+            allBooksoObject['status'] = False
+            closenessDataObject['data'] = getMatrixCloseness(tableIndexDataObject['data'])
+            closenessDataObject['status'] = False
+            loadingBack['status'] = False
+            print('END LOADING DATA')
         return render_template("index.html")
 
     # try to get only 10 book
@@ -43,33 +63,34 @@ def create_app(debug=True):
     def get_books():
         print("Running get_books")
         # data = getBooksData(listBooks)
-        return jsonify(allBooks)
+        return jsonify(allBooksoObject['data'])
 
     # find book with keyword
     @app.route('/searchbook/<word>', methods=['GET'])
     def search_books(word):
         print("Running search_books POST")
-        # tableIndexData, booksInfo = getTableIndex(listBooks)
-        if tableIndexData.get(word)!=None:
-            # print(jsonify(tableIndexData[word]))
-            sortedBooks = dict(sorted(tableIndexData[word].items(),key=lambda x:x[1], reverse=True))
-            bookData =  getBooksData(sortedBooks.keys())
-            return jsonify(bookData)
-        else:
-            return "NOT_FOUND"
+        if not tableIndexDataObject['status']:
+            if tableIndexDataObject['data'].get(word)!=None:
+                # print(jsonify(tableIndexData[word]))
+                sortedBooks = dict(sorted(tableIndexDataObject['data'][word].items(),key=lambda x:x[1], reverse=True))
+                bookData =  getBooksData(sortedBooks.keys())
+                return jsonify(bookData)
+            else:
+                return "NOT_FOUND"
+        return "NO TABLE INDEX AVAILABLE"
         
     # get table index
     @app.route('/tableindex', methods=['GET'])
     def table_index():
-        return jsonify(list(tableIndexData.keys()))
+        return jsonify(list(tableIndexDataObject['data'].keys()))
     
     # Use Cosine to have suggestion & ranking
     @app.route('/cosine', methods=['GET'])
     def cosine():
         print("Running cosine")
-        if rankingObject["status"]:
+        if rankingObject["status"] and not tableIndexDataObject['status']:
             ranking = []
-            booksData = cosineSearchWord(historyWords, tableIndexData)
+            booksData = cosineSearchWord(historyWords, tableIndexDataObject['data'])
             for id,val in enumerate(list(booksData)):
                 if id > 5:
                     break
@@ -79,39 +100,23 @@ def create_app(debug=True):
             rankingObject["status"] = False
         return jsonify(rankingObject["data"])
 
-    # Use Jaccard to have list of book suggestion and order it
-    @app.route('/jaccard', methods=['GET'])
-    def jaccard():
-        booksData = jaccardSimilarity(historyWords,booksInfo)
-
-        # sortedBooks = sorted(booksData, key=lambda d: d['jaccard'], reverse=True) 
-        sendBookId = []
-        for sb in booksData:
-            if sb['jaccard'] > 0:
-                sendBookId.append(sb['bookId'])
-        top5 = sendBookId.slice(0,5)  if len(sendBookId) > 5 else sendBookId
-        ranking = getBooksData(top5)
-        # print(booksData)
-        return jsonify(ranking)
-        # return jsonify(sendBookId, booksData, historyWords)
-
     @app.route('/lastsearch', methods=['GET'])
     def last_search():
         print('Running last search')
         if lastSearchObject["status"]:
             lastSearch = lastSearchWord["word"]
             sortedBooks = dict()
-            if tableIndexData.get(lastSearch)!=None and lastSearch != "":
+            if tableIndexDataObject['data'].get(lastSearch)!=None and lastSearch != "":
                 # print(jsonify(tableIndexData[word]))
-                sortedBooks = dict(sorted(tableIndexData[lastSearch].items(),key=lambda x:x[1], reverse=True))
+                sortedBooks = dict(sorted(tableIndexDataObject['data'][lastSearch].items(),key=lambda x:x[1], reverse=True))
             lastSearchObject["data"] = getBooksData(list(sortedBooks.keys()))
             lastSearchObject["status"] = False
         return jsonify(lastSearchObject["data"])
 
     @app.route('/suggestion', methods=['GET'])
     def suggestion():
-        print('Running suggestion')
-        if suggestionObject["status"]:
+        print('RUN ROUTE suggestion')
+        if suggestionObject["status"] and not tableIndexDataObject['status'] and not closenessDataObject['status']:
             # Init variable
             lastSearch = lastSearchWord["word"]
             sortedBooks = dict()
@@ -119,41 +124,47 @@ def create_app(debug=True):
             lock = Lock()
             
             print("Last search" , lastSearch)
-            if tableIndexData.get(lastSearch)!=None and lastSearch != "":
+            if tableIndexDataObject['data'].get(lastSearch)!=None and lastSearch != "":
                 # print(jsonify(tableIndexData[word]))
-                sortedBooks = dict(sorted(tableIndexData[lastSearch].items(),key=lambda x:x[1], reverse=True))
-            closenessData = getMatrixCloseness(tableIndexData)
+                sortedBooks = dict(sorted(tableIndexDataObject['data'][lastSearch].items(),key=lambda x:x[1], reverse=True))
+
+            def checkCloseness(closenessPos, suggestionBooks, sortedBooks):
+                return closenessPos not in suggestionBooks and closenessPos not in list(sortedBooks.keys())
 
             def getSuggestion(id,closeData):
                 lock.acquire()
                 if closeData['bookId'] in list(sortedBooks.keys()):
                     if id==0:
-                        if closenessData[id+1]['bookId'] not in suggestionBooks and closenessData[id+1]['bookId'] not in list(sortedBooks.keys()):
-                            suggestionBooks.append(closenessData[id+1]['bookId']) 
-                    elif id==len(closenessData)-1:
-                        if closenessData[id-1]['bookId'] not in suggestionBooks and closenessData[id-1]['bookId'] not in list(sortedBooks.keys()):
-                            suggestionBooks.append(closenessData[id-1]['bookId']) 
+                        if checkCloseness(closenessDataObject['data'][id+1]['bookId'] , suggestionBooks, sortedBooks):
+                            suggestionBooks.append(closenessDataObject['data'][id+1]['bookId']) 
+                    elif id==len(closenessDataObject['data'])-1:
+                        if checkCloseness(closenessDataObject['data'][id-1]['bookId'] , suggestionBooks, sortedBooks):
+                            suggestionBooks.append(closenessDataObject['data'][id-1]['bookId']) 
                     else:
-                        if closenessData[id+1]['bookId'] not in suggestionBooks and closenessData[id+1]['bookId'] not in list(sortedBooks.keys()):
-                            suggestionBooks.append(closenessData[id+1]['bookId']) 
-                        if closenessData[id-1]['bookId'] not in suggestionBooks and closenessData[id-1]['bookId'] not in list(sortedBooks.keys()):
-                            suggestionBooks.append(closenessData[id-1]['bookId']) 
+                        if checkCloseness(closenessDataObject['data'][id+1]['bookId'] , suggestionBooks, sortedBooks):
+                            suggestionBooks.append(closenessDataObject['data'][id+1]['bookId']) 
+                        if checkCloseness(closenessDataObject['data'][id-1]['bookId'] , suggestionBooks, sortedBooks):
+                            suggestionBooks.append(closenessDataObject['data'][id-1]['bookId']) 
                 lock.release()
 
-            print("Running thread suggestion:")
+            print("START thread getSuggestion")
             threaded_start = time.time()
             # booksData = []
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 futures = []
-                for id,closeData in enumerate(closenessData):
+                for id,closeData in enumerate(closenessDataObject['data']):
                     futures.append(executor.submit(getSuggestion, id,closeData))
-            print("Threaded suggestion", time.time() - threaded_start)
+            print("END thread getSuggestion", time.time() - threaded_start)
 
             suggestionObject["data"] = getBooksData(suggestionBooks)     
             suggestionObject["status"] = False
+        print('END ROUTE suggestion')
         return jsonify(suggestionObject["data"])
 
-    #### POST
+
+    ##############################
+    # ---------- POST ---------- #
+    ##############################
     # send search data
     @app.route('/searchdata', methods=['POST'])
     @cross_origin(origin='*',headers=['content-type'])
@@ -171,19 +182,63 @@ def create_app(debug=True):
         rankingObject["status"] = True
         return jsonify(historyWords)
     
-    ### TEST
+    @app.route('/clickedbooks', methods=['POST'])
+    @cross_origin(origin='*',headers=['content-type'])
+    def clicked_books():
+        print("Running clicked_books")
+        bookId = request.json['bookId']
+        # lastSearchWord["word"] = lowerWord
+        if bookId in clickedBooks:
+            clickedBooks[bookId] += 1
+        else:
+            clickedBooks[bookId] = 1
+        # lastSearchObject["status"] = True
+        # suggestionObject["status"] = True
+        # rankingObject["status"] = True
+        return jsonify(historyWords)
+    
+    #################################################
+    # ---------- SHOW SOME DATA TO CHECK ---------- #
+    #################################################
+
+    # get all list of index
+    @app.route('/tindex', methods=['GET'])
+    def tindex():
+        return jsonify(tableIndexDataObject['data'])
+    
+    # get all list of history words
+    @app.route('/historyword', methods=['GET'])
+    def history_word():
+        return jsonify(historyWords)
+    
+
+    ###########################################
+    # ---------- NOT USING FOR NOW ---------- #
+    ###########################################
+
     # get table index for each book
     @app.route('/itbook', methods=['GET'])
     def itbook():
-        return jsonify(booksInfo)
-    
-    @app.route('/tindex', methods=['GET'])
-    def tindex():
-        return jsonify(tableIndexData)
-    
+        return jsonify(booksInfoObject['data'])
 
+    # Use Jaccard to have list of book suggestion and order it
+    @app.route('/jaccard', methods=['GET'])
+    def jaccard():
+        booksData = jaccardSimilarity(historyWords,booksInfoObject['data'])
+
+        # sortedBooks = sorted(booksData, key=lambda d: d['jaccard'], reverse=True) 
+        sendBookId = []
+        for sb in booksData:
+            if sb['jaccard'] > 0:
+                sendBookId.append(sb['bookId'])
+        top5 = sendBookId.slice(0,5)  if len(sendBookId) > 5 else sendBookId
+        ranking = getBooksData(top5)
+        # print(booksData)
+        return jsonify(ranking)
+        # return jsonify(sendBookId, booksData, historyWords)
             
     return app
 
 app = create_app(debug=True)
-app.run()
+if __name__ == "__main__" :
+    app.run()
