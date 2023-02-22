@@ -73,17 +73,10 @@
       <h3 class="methods-title">GET</h3>
       <div class="container">
         <div class="methods-container">
-          <span>Get all books (10 books)</span>
+          <span>Get all books</span>
           <a target="_blank" href="/getbooks"
             >http://127.0.0.1:5000/getbooks
           </a>
-        </div>
-
-        <div class="methods-container">
-          <span>Find books with keyword = `saigon`</span>
-          <a target="_blank" href="/searchbook/saigon"
-            >http://127.0.0.1:5000/searchbook/saigon</a
-          >
         </div>
 
         <div class="methods-container">
@@ -135,12 +128,33 @@
 
         <div class="methods-container">
           <span>Show history searched words</span>
-          <a target="_blank" href="/historywords"
-            >http://127.0.0.1:5000/historywords</a
+          <a target="_blank" href="/searchdata"
+            >http://127.0.0.1:5000/searchdata</a
           >
         </div>
       </div>
     </div>
+
+    <!-- <div class="divider"></div> -->
+    <div class="methods">
+      <h3 class="methods-title">GET with marameter</h3>
+      <div class="container">
+        <div class="methods-container">
+          <span>Find books with keyword = `saigon`</span>
+          <a target="_blank" href="/searchbook/saigon"
+            >http://127.0.0.1:5000/searchbook/saigon</a
+          >
+        </div>
+
+        <div class="methods-container">
+          <span>Find book content with keyword = `2`</span>
+          <a target="_blank" href="/readbookcontent/2"
+            >http://127.0.0.1:5000/readbookcontent/2</a
+          >
+        </div>
+      </div>
+    </div>
+
     <!-- <div class="divider"></div> -->
     <div class="methods">
       <h3 class="methods-title">POST</h3>
@@ -150,6 +164,22 @@
 
           <a target="_blank" href="/searchdata"
             >http://127.0.0.1:5000/searchdata
+          </a>
+        </div>
+        <div class="search-form">
+          <span>Try this request: </span>
+          <input id="search" />
+          <button id="btn-send" onclick="sendWord()">Send</button>
+        </div>
+        <div class="result-form">
+          <span id="result"></span>
+        </div>
+
+        <div class="methods-container">
+          <span>Send book id to have ranking of the most clicked </span>
+
+          <a target="_blank" href="/clickedbooks"
+            >http://127.0.0.1:5000/clickedbooks
           </a>
         </div>
         <div class="search-form">

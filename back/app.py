@@ -5,7 +5,7 @@ from tableIndex import getTableIndex
 from getBooksApi import getBooksData, getBooksThread
 from cosine import cosineSearchWord, getMatrixCloseness
 from jaccard import jaccardSimilarity
-import time, concurrent.futures, json, requests
+import time, concurrent.futures, json, requests, re
 from threading import Lock
 
 ##########################################
@@ -27,6 +27,7 @@ allBooksoObject = dict({"data": [],"status" : True})
 closenessDataObject = dict({"data": [],"status" : True})
 tableIndexDataObject =   dict({"data": dict(),"status" : True})
 loadingBack = dict({"status": True})
+lastReadingBook = dict({"bookId": None, "data": ""})
 
 def create_app(debug=True):
 
@@ -65,19 +66,7 @@ def create_app(debug=True):
         # data = getBooksData(listBooks)
         return jsonify(allBooksoObject['data'])
 
-    # find book with keyword
-    @app.route('/searchbook/<word>', methods=['GET'])
-    def search_books(word):
-        print("Running search_books POST")
-        if not tableIndexDataObject['status']:
-            if tableIndexDataObject['data'].get(word)!=None:
-                # print(jsonify(tableIndexData[word]))
-                sortedBooks = dict(sorted(tableIndexDataObject['data'][word].items(),key=lambda x:x[1], reverse=True))
-                bookData =  getBooksData(sortedBooks.keys())
-                return jsonify(bookData)
-            else:
-                return "NOT_FOUND"
-        return "NO TABLE INDEX AVAILABLE"
+
         
     # get table index
     @app.route('/tableindex', methods=['GET'])
@@ -160,42 +149,88 @@ def create_app(debug=True):
             suggestionObject["status"] = False
         print('END ROUTE suggestion')
         return jsonify(suggestionObject["data"])
+    
+    #############################################
+    # ---------- GET WITH PARAMETERS ---------- #
+    #############################################
+
+    # find book with keyword
+    @app.route('/searchbook/<word>', methods=['GET'])
+    def search_books(word):
+        print("Running search_books POST")
+        if not tableIndexDataObject['status']:
+            if tableIndexDataObject['data'].get(word)!=None:
+                # print(jsonify(tableIndexData[word]))
+                sortedBooks = dict(sorted(tableIndexDataObject['data'][word].items(),key=lambda x:x[1], reverse=True))
+                bookData =  getBooksData(sortedBooks.keys())
+                return jsonify(bookData)
+            else:
+                return "NOT_FOUND"
+        return "NO TABLE INDEX AVAILABLE"
+    
+    @app.route('/readbookcontent/<bookId>')
+    def read_book_content(bookId):
+        print("RUN ROUTE readbookcontent")
+        if lastReadingBook['bookId'] != bookId:
+            book_data = getBooksThread(bookId)
+            for format in book_data['formats'].keys():
+                if '.htm' in book_data['formats'][format]:
+                    response_API = requests.get(book_data['formats'][format])
+                    lastReadingBook['data'] = response_API.text
+                elif '.html.images' in book_data['formats'][format]:
+                    response_API = requests.get(book_data['formats'][format])
+                    lastReadingBook['data'] = response_API.text
+            lastReadingBook['bookId'] = bookId
+
+        pattern = re.compile(r'<body>(.*?)</body>', re.DOTALL)
+        result = re.search(pattern, lastReadingBook['data'])
+
+        if result:
+            body_content = result.group(1)
+            # print(body_content)
+            lastReadingBook['data'] = body_content
+        print("END ROUTE readbookcontent")
+        return jsonify({'textHtml' : lastReadingBook['data']})
+        
 
 
     ##############################
     # ---------- POST ---------- #
     ##############################
     # send search data
-    @app.route('/searchdata', methods=['POST'])
+    @app.route('/searchdata', methods=['POST', 'GET'])
     @cross_origin(origin='*',headers=['content-type'])
     def search_data():
         print("Running search_data with keyword")
-        word = request.json['word']
-        lowerWord = word.lower()
-        lastSearchWord["word"] = lowerWord
-        if lowerWord in historyWords:
-            historyWords[lowerWord] += 1
-        else:
-            historyWords[lowerWord] = 1
-        lastSearchObject["status"] = True
-        suggestionObject["status"] = True
-        rankingObject["status"] = True
+        if request.method == 'POST':
+            word = request.json['word']
+            lowerWord = word.lower()
+            lastSearchWord["word"] = lowerWord
+            if lowerWord in historyWords:
+                historyWords[lowerWord] += 1
+            else:
+                historyWords[lowerWord] = 1
+            lastSearchObject["status"] = True
+            suggestionObject["status"] = True
+            rankingObject["status"] = True
         return jsonify(historyWords)
     
-    @app.route('/clickedbooks', methods=['POST'])
+    @app.route('/clickedbooks', methods=['POST','GET'])
     @cross_origin(origin='*',headers=['content-type'])
     def clicked_books():
-        print("Running clicked_books")
-        bookId = request.json['bookId']
-        # lastSearchWord["word"] = lowerWord
-        if bookId in clickedBooks:
-            clickedBooks[bookId] += 1
-        else:
-            clickedBooks[bookId] = 1
-        # lastSearchObject["status"] = True
-        # suggestionObject["status"] = True
-        # rankingObject["status"] = True
-        return jsonify(historyWords)
+        print("RUN ROUTE clicked_books")
+        if request.method == 'POST':
+            bookId = request.json['bookId']
+            # lastSearchWord["word"] = lowerWord
+            if bookId in clickedBooks:
+                clickedBooks[bookId] += 1
+            else:
+                clickedBooks[bookId] = 1
+            # lastSearchObject["status"] = True
+            # suggestionObject["status"] = True
+            # rankingObject["status"] = True
+        print("END ROUTE clicked_books")
+        return jsonify(clickedBooks)
     
     #################################################
     # ---------- SHOW SOME DATA TO CHECK ---------- #
@@ -205,11 +240,6 @@ def create_app(debug=True):
     @app.route('/tindex', methods=['GET'])
     def tindex():
         return jsonify(tableIndexDataObject['data'])
-    
-    # get all list of history words
-    @app.route('/historyword', methods=['GET'])
-    def history_word():
-        return jsonify(historyWords)
     
 
     ###########################################
