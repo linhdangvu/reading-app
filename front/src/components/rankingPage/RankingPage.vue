@@ -4,6 +4,7 @@
     IonSegment,
     IonSegmentButton,
     IonLabel,
+    IonCard,
   } from "@ionic/vue";
   import { onMounted, watchEffect } from "@vue/runtime-core";
   import { computed, ref } from "vue";
@@ -84,13 +85,15 @@
         <ion-label>Most read</ion-label>
       </ion-segment-button>
     </ion-segment>
-    <div v-if="optionTop === 'searched'">
+    <div v-if="optionTop === 'searched'" :key="optionTop">
       <div class="book-loading" v-if="isLoading">
         <ion-spinner name="lines-sharp"></ion-spinner>
       </div>
       <div v-else>
-        <div v-if="allBooksData.length !== 0">
-          <BookCard :data="allBooksData" />
+        <div class="book-cards" v-if="allBooksData.length !== 0">
+          <ion-card v-for="item in allBooksData" :key="item.id">
+            <BookCard :data="item" />
+          </ion-card>
         </div>
         <div v-else class="error-search">
           <h4>There are no data for most searched for now.</h4>
@@ -98,13 +101,15 @@
       </div>
     </div>
 
-    <div v-if="optionTop === 'read'">
+    <div v-if="optionTop === 'read'" :key="optionTop">
       <div class="book-loading" v-if="loadindMostRead">
         <ion-spinner name="lines-sharp"></ion-spinner>
       </div>
       <div v-else>
-        <div v-if="allMostRead.length !== 0">
-          <BookCard :data="allMostRead" />
+        <div class="book-cards" v-if="allMostRead.length !== 0">
+          <ion-card v-for="item in allMostRead" :key="item.id">
+            <BookCard :data="item" />
+          </ion-card>
         </div>
         <div v-else class="error-search">
           <h4>There are no data for most read for now.</h4>
