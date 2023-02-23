@@ -1,6 +1,5 @@
 
-import time, concurrent.futures, json, requests
-
+import time, json, requests
 from thread import baseThreadPool
 
 # request to get books
@@ -17,23 +16,12 @@ def getBooksData(listBooks):
     print("RUNNING function getBooksData")
     threaded_start = time.time()
     booksData = baseThreadPool(listBooks, getBooksThread, True)
-    
-    # booksData = []
-    # with concurrent.futures.ThreadPoolExecutor() as executor:
-    #     futures = []
-    #     for bookId in listBooks:
-    #         futures.append(executor.submit(getBooksThread, bookId))
-    #     for future in concurrent.futures.as_completed(futures):
-    #         if future.result() != 'NOT_FOUND':
-    #             booksData.append(future.result())
-            # print(future.result())
-    print("Threaded get books", time.time() - threaded_start)
-    print("END function getBooksData")
+    print("END function getBooksData - {}".format(time.time() - threaded_start))
     return booksData
 
-
-
 def getListBooks(listBooks):
+    print("RUNNING function getListBooks")
+    threaded_start = time.time()
     def transformData(d):
         res = []
         if d.get('formats')!=None:
@@ -45,18 +33,7 @@ def getListBooks(listBooks):
                         'text_url': d['formats'][t]
                     })
         return res
-    
-    allBooks = getBooksData(listBooks)
-    print("START thread transformData")
-    threaded_start = time.time()
-    result = baseThreadPool(allBooks, transformData, True, 2)
-    
-    # result = []
-    # with concurrent.futures.ThreadPoolExecutor() as executor:
-    #     futures = []
-    #     for d in allBooks:
-    #         futures.append(executor.submit(transformData, d))
-    #     for future in concurrent.futures.as_completed(futures):
-    #         result += future.result()
-    print("TSTART thread transformData: ", time.time() - threaded_start)
+    allBooks = getBooksData(listBooks)    
+    result = baseThreadPool(allBooks, transformData, True, 2) 
+    print("END function getListBooks", time.time() - threaded_start)
     return result, allBooks
