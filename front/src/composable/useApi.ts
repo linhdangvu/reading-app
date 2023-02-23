@@ -16,44 +16,13 @@ export const getBooks = async (url: string) => {
   }
 };
 
-export const sendSearchData = async (url: string, wordData: string) => {
+export const sendSearchData = async (url: string, data: any) => {
   try {
-    const sendData = await axios.post(
-      url,
-      { word: wordData },
-      { headers: dataHeaders }
-    );
+    const sendData = await axios.post(url, data, { headers: dataHeaders });
     console.log(sendData.data);
     return sendData.data;
   } catch (e: any) {
     console.log(e);
     return [];
   }
-};
-
-const data = {
-  id: 7,
-  title: "The Mayflower Compact",
-  authors: [],
-  translators: [],
-  subjects: [
-    "Massachusetts -- History -- New Plymouth, 1620-1691 -- Sources",
-    "Mayflower Compact (1620)",
-    "Pilgrims (New Plymouth Colony)",
-  ],
-  bookshelves: [],
-  languages: ["en"],
-  copyright: false,
-  media_type: "Text",
-  formats: {
-    "application/x-mobipocket-ebook":
-      "https://www.gutenberg.org/ebooks/7.kf8.images",
-    "application/epub+zip": "https://www.gutenberg.org/ebooks/7.epub3.images",
-    "text/html": "https://www.gutenberg.org/ebooks/7.html.images",
-    "image/jpeg": "https://www.gutenberg.org/cache/epub/7/pg7.cover.medium.jpg",
-    "text/plain; charset=us-ascii": "https://www.gutenberg.org/files/7/7.txt",
-    "text/plain": "https://www.gutenberg.org/ebooks/7.txt.utf-8",
-    "application/rdf+xml": "https://www.gutenberg.org/ebooks/7.rdf",
-  },
-  download_count: 93,
 };

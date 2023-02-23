@@ -1,4 +1,4 @@
-export interface Books {
+export interface Book {
   authors: {
     birth_year: number;
     death_year: number;
