@@ -15,6 +15,7 @@
     IonTitle,
     IonContent,
     IonItem,
+    IonSpinner,
     createAnimation,
   } from "@ionic/vue";
   import { reactive, ref } from "vue";
@@ -33,7 +34,7 @@
     name: "",
     author: "",
     content: "",
-    format: "",
+    link: "",
   });
 
   const setOpenReading = (status: boolean) => {
@@ -91,15 +92,16 @@
 
     try {
       loadingBook.value = true;
+      await sendSearchData("http://127.0.0.1:5000/clickedbooks", {
+        bookId: bookData.id,
+      });
+      await sleep(10);
       const data = await axios.get(
         "http://127.0.0.1:5000/readbookcontent/" + bookData.id
       );
       // console.log(data);
-      await sleep(10);
-      await sendSearchData("http://127.0.0.1:5000/clickedbooks", {
-        bookId: bookData.id,
-      });
       book.content = data.data.textHtml;
+      book.link = data.data.link;
       loadingBook.value = false;
     } catch (e: any) {
       console.log(e);
@@ -156,6 +158,15 @@
             </p>
             <p>
               <span>ID:</span> <span>{{ book.id }}</span>
+            </p>
+            <p>
+              <span>Link:</span>
+              <span>
+                <div v-if="!loadingBook">
+                  <a :href="book.link" target="_blank">{{ book.link }}</a>
+                </div>
+                <ion-spinner v-else name="lines-sharp"></ion-spinner>
+              </span>
             </p>
           </div>
           <div class="book-loading" v-if="loadingBook">

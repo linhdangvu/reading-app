@@ -132,6 +132,11 @@
             >http://127.0.0.1:5000/searchdata</a
           >
         </div>
+
+        <div class="methods-container">
+          <span>Show most read books</span>
+          <a target="_blank" href="/mostread">http://127.0.0.1:5000/mostread</a>
+        </div>
       </div>
     </div>
 
@@ -184,17 +189,18 @@
         </div>
         <div class="search-form">
           <span>Try this request: </span>
-          <input id="search" />
-          <button id="btn-send" onclick="sendWord()">Send</button>
+          <input id="clicked-book" type="number" />
+          <button id="btn-send-book" onclick="sendClickedWord()">Send</button>
         </div>
         <div class="result-form">
-          <span id="result"></span>
+          <span id="result-clicked"></span>
         </div>
       </div>
     </div>
 
     <script>
       var searchWord = document.getElementById("search");
+      var clickedBook = document.getElementById("clicked-book");
 
       async function sendWord() {
         try {
@@ -210,11 +216,25 @@
         }
       }
 
+      async function sendClickedWord() {
+        try {
+          const data = await axios.post("http://127.0.0.1:5000/clickedBooks", {
+            bookId: clickedBook.value,
+          });
+          console.log(data);
+          document.getElementById("result-clicked").innerHTML =
+            "Result: " + JSON.stringify(data.data);
+          // alert("Send word succesfully");
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
       searchWord.addEventListener("keypress", function (event) {
         // If the user presses the "Enter" key on the keyboard
         if (event.key === "Enter") {
           event.preventDefault();
-          document.getElementById("btn-send").click();
+          document.getElementById("btn-send-book").click();
         }
       });
     </script>

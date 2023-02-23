@@ -22,12 +22,14 @@ lastSearchWord = dict({"word": ""})
 suggestionObject = dict({"data": [],"status" : True})
 lastSearchObject = dict({"data": [],"status" : True})
 rankingObject = dict({"data": [],"status" : True})
+mostReadObject = dict({"data": [],"status" : True})
 booksInfoObject = dict({"data": [],"status" : True})
 allBooksoObject = dict({"data": [],"status" : True})
 closenessDataObject = dict({"data": [],"status" : True})
 tableIndexDataObject =   dict({"data": dict(),"status" : True})
 loadingBack = dict({"status": True})
-lastReadingBook = dict({"bookId": None, "data": ""})
+lastReadingBook = dict({"bookId": None, "data": "", "link": ""})
+
 
 def create_app(debug=True):
 
@@ -81,13 +83,29 @@ def create_app(debug=True):
             ranking = []
             booksData = cosineSearchWord(historyWords, tableIndexDataObject['data'])
             for id,val in enumerate(list(booksData)):
-                if id > 5:
+                if id > 10:
                     break
                 else:
                     ranking.append(getBooksThread(val))
             rankingObject["data"] = ranking
             rankingObject["status"] = False
         return jsonify(rankingObject["data"])
+    
+    # get most read by compare clicked book
+    @app.route('/mostread', methods=['GET'])
+    def most_read():
+        if mostReadObject['status']:
+            sortedClickedBooks = dict(sorted(clickedBooks.items(),key=lambda x:x[1], reverse=True) )
+            ranking = []
+            for id,val in enumerate(list(sortedClickedBooks.keys())):
+                if id > 10:
+                    break
+                else:
+                    ranking.append(getBooksThread(val))
+            mostReadObject["data"] = ranking
+            mostReadObject["status"] = False
+        return jsonify(mostReadObject['data'])
+
 
     @app.route('/lastsearch', methods=['GET'])
     def last_search():
@@ -175,11 +193,14 @@ def create_app(debug=True):
             book_data = getBooksThread(bookId)
             for format in book_data['formats'].keys():
                 if '.htm' in book_data['formats'][format]:
+                    lastReadingBook['link'] = book_data['formats'][format]
                     response_API = requests.get(book_data['formats'][format])
                     lastReadingBook['data'] = response_API.text
                 elif '.html.images' in book_data['formats'][format]:
+                    lastReadingBook['link'] = book_data['formats'][format]
                     response_API = requests.get(book_data['formats'][format])
                     lastReadingBook['data'] = response_API.text
+                    
             lastReadingBook['bookId'] = bookId
 
         pattern = re.compile(r'<body>(.*?)</body>', re.DOTALL)
@@ -187,10 +208,11 @@ def create_app(debug=True):
 
         if result:
             body_content = result.group(1)
+            replace_image = body_content.replace('images/', 'https://www.gutenberg.org/cache/epub/{}/images/'.format(bookId))
             # print(body_content)
-            lastReadingBook['data'] = body_content
+            lastReadingBook['data'] = replace_image
         print("END ROUTE readbookcontent")
-        return jsonify({'textHtml' : lastReadingBook['data']})
+        return jsonify({ "link": lastReadingBook['link'],'textHtml' : lastReadingBook['data']})
         
 
 
@@ -226,9 +248,7 @@ def create_app(debug=True):
                 clickedBooks[bookId] += 1
             else:
                 clickedBooks[bookId] = 1
-            # lastSearchObject["status"] = True
-            # suggestionObject["status"] = True
-            # rankingObject["status"] = True
+            mostReadObject["status"] = True
         print("END ROUTE clicked_books")
         return jsonify(clickedBooks)
     

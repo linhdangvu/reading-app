@@ -1,5 +1,10 @@
 <script setup lang="ts">
-  import { IonSpinner } from "@ionic/vue";
+  import {
+    IonSpinner,
+    IonSegment,
+    IonSegmentButton,
+    IonLabel,
+  } from "@ionic/vue";
   import { onMounted, watchEffect } from "@vue/runtime-core";
   import { computed, ref } from "vue";
   // import sleep from "../../utils/sleep";
@@ -8,12 +13,25 @@
 
   /* INITIAL VARIABLE */
   const isLoading = ref(true);
+  const loadindMostRead = ref(true);
+  const optionTop = ref("searched");
   let booksData: any[] | string = [];
+  let mostReadData: any[] | string = [];
   const rank = useRanking();
 
   /* ----------- MOUNTED ---------- */
   onMounted(async () => {
     await getRankingBooks();
+  });
+
+  onMounted(async () => {
+    loadindMostRead.value = true;
+    try {
+      mostReadData = await getBooks("http://127.0.0.1:5000/mostread");
+      loadindMostRead.value = false;
+    } catch (e: any) {
+      console.log(e);
+    }
   });
 
   /* FUNCTIONS */
@@ -38,26 +56,59 @@
     return [];
   });
 
+  const allMostRead = computed(() => {
+    if (!loadindMostRead.value) {
+      return mostReadData;
+    }
+    return [];
+  });
+
   watchEffect(async () => {
     // console.log("Watch ranking", rank.loadingRank);
     if (rank.loadingRank) {
       await getRankingBooks();
       rank.setLoadingRank(false);
     }
+
+    console.log(optionTop.value);
   });
 </script>
 
 <template>
   <div>
-    <div class="book-loading" v-if="isLoading">
-      <ion-spinner name="lines-sharp"></ion-spinner>
-    </div>
-    <div v-else>
-      <div v-if="allBooksData.length !== 0">
-        <BookCard :data="allBooksData" />
+    <ion-segment :value="optionTop">
+      <ion-segment-button value="searched" @click="optionTop = 'searched'">
+        <ion-label>Most searched</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="read" @click="optionTop = 'read'">
+        <ion-label>Most read</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+    <div v-if="optionTop === 'searched'">
+      <div class="book-loading" v-if="isLoading">
+        <ion-spinner name="lines-sharp"></ion-spinner>
       </div>
-      <div v-else class="error-search">
-        <h4>There a no ranking for now.</h4>
+      <div v-else>
+        <div v-if="allBooksData.length !== 0">
+          <BookCard :data="allBooksData" />
+        </div>
+        <div v-else class="error-search">
+          <h4>There are no data for most searched for now.</h4>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="optionTop === 'read'">
+      <div class="book-loading" v-if="loadindMostRead">
+        <ion-spinner name="lines-sharp"></ion-spinner>
+      </div>
+      <div v-else>
+        <div v-if="allMostRead.length !== 0">
+          <BookCard :data="allMostRead" />
+        </div>
+        <div v-else class="error-search">
+          <h4>There are no data for most read for now.</h4>
+        </div>
       </div>
     </div>
   </div>
