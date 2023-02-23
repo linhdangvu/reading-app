@@ -1,6 +1,6 @@
 <script setup lang="ts">
-  import { IonSpinner } from "@ionic/vue";
-  import { onMounted, watchEffect } from "@vue/runtime-core";
+  import { IonSpinner, IonCard } from "@ionic/vue";
+  import { onMounted } from "@vue/runtime-core";
   import { computed, ref } from "vue";
   // import sleep from "../../utils/sleep";
   import { getBooks } from "../../../src/composable/useApi";
@@ -37,10 +37,11 @@
     <div v-else>
       <div>
         <!-- <h3>Suggestion</h3> -->
-        <div v-if="suggestionData.length !== 0">
-          <BookCard :data="suggestionData" />
+        <div class="book-cards" v-if="suggestionData.length !== 0">
+          <ion-card v-for="item in suggestionData" :key="item.id">
+            <BookCard :data="item" />
+          </ion-card>
         </div>
-
         <div v-else class="error-search">
           <h4>No suggestion for now.</h4>
         </div>

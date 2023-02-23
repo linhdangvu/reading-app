@@ -51,6 +51,7 @@ def create_app(debug=True):
     def index():
         if loadingBack['status']:
             print('START LOADING DATA')
+            loading_time = time.time()
             tableIndexDataObject['data'], booksInfoObject['data'], allBooksoObject['data'] = getTableIndex(listBooks)
             tableIndexDataObject['status'] = False
             booksInfoObject['status'] = False
@@ -58,7 +59,7 @@ def create_app(debug=True):
             closenessDataObject['data'] = getMatrixCloseness(tableIndexDataObject['data'])
             closenessDataObject['status'] = False
             loadingBack['status'] = False
-            print('END LOADING DATA')
+            print('END LOADING DATA - {}'.format(time.time() - loading_time))
         return render_template("index.html")
 
     # try to get only 10 book

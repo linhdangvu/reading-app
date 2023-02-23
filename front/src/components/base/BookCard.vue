@@ -24,7 +24,7 @@
   import sleep from "../../utils/sleep";
 
   const props = defineProps<{
-    data: Book[];
+    data: Book;
   }>();
 
   const openReading = ref(false);
@@ -84,20 +84,19 @@
     return "No author";
   };
 
-  const getBookData = async (bookData: Book) => {
-    console.log(bookData);
-    book.id = bookData.id;
-    book.name = bookData.title;
-    book.author = getAuthors(bookData.authors);
+  const readBook = async () => {
+    book.id = props.data.id;
+    book.name = props.data.title;
+    book.author = getAuthors(props.data.authors);
 
     try {
       loadingBook.value = true;
       await sendSearchData("http://127.0.0.1:5000/clickedbooks", {
-        bookId: bookData.id,
+        bookId: props.data.id,
       });
       await sleep(10);
       const data = await axios.get(
-        "http://127.0.0.1:5000/readbookcontent/" + bookData.id
+        "http://127.0.0.1:5000/readbookcontent/" + props.data.id
       );
       // console.log(data);
       book.content = data.data.textHtml;
@@ -110,74 +109,70 @@
   };
 </script>
 <template>
-  <div class="book-cards">
-    <ion-card
-      v-for="item in props.data"
-      :key="item.id"
-      class="book-card"
-      @click="
-        getBookData(item);
-        setOpenReading(true);
-      "
-    >
-      <img
-        v-if="item.formats"
-        :alt="item.title"
-        :src="item.formats['image/jpeg']"
-      />
-      <ion-card-header>
-        <ion-card-title v-if="item.title">{{
-          checkTextLong(item.title)
-        }}</ion-card-title>
-        <ion-card-subtitle v-if="item.authors">{{
-          getAuthors(item.authors)
-        }}</ion-card-subtitle>
-      </ion-card-header>
-      <!-- <ion-button expand="block" @click="setOpenReading(true)">Open</ion-button> -->
+  <div
+    class="book-card"
+    @click="
+      readBook();
+      setOpenReading(true);
+    "
+  >
+    <img
+      v-if="props.data.formats"
+      :alt="props.data.title"
+      :src="props.data.formats['image/jpeg']"
+    />
+    <ion-card-header>
+      <ion-card-title v-if="props.data.title">{{
+        checkTextLong(props.data.title)
+      }}</ion-card-title>
+      <ion-card-subtitle v-if="props.data.authors">{{
+        getAuthors(props.data.authors)
+      }}</ion-card-subtitle>
+    </ion-card-header>
+    <!-- <ion-button expand="block" @click="setOpenReading(true)">Open</ion-button> -->
 
-      <ion-modal
-        :is-open="openReading"
-        :enter-animation="enterAnimation"
-        :leave-animation="leaveAnimation"
-      >
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>{{ book.name }}</ion-title>
-            <ion-buttons slot="end">
-              <ion-button @click="setOpenReading(false)">Close</ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content class="ion-padding">
-          <div class="init-book">
-            <p>
-              <span>Title:</span> <span>{{ book.name }}</span>
-            </p>
-            <p>
-              <span>Author:</span> <span>{{ book.author }}</span>
-            </p>
-            <p>
-              <span>ID:</span> <span>{{ book.id }}</span>
-            </p>
-            <p>
-              <span>Link:</span>
-              <span>
-                <div v-if="!loadingBook">
-                  <a :href="book.link" target="_blank">{{ book.link }}</a>
-                </div>
-                <ion-spinner v-else name="lines-sharp"></ion-spinner>
-              </span>
-            </p>
-          </div>
-          <div class="book-loading" v-if="loadingBook">
-            <ion-spinner name="lines-sharp"></ion-spinner>
-          </div>
-          <div v-else class="book-content" v-html="book.content"></div>
-          <!-- <iframe class="book-content" src="book.content" allowfullscreen> -->
-          <!-- </iframe> -->
-        </ion-content>
-      </ion-modal>
-    </ion-card>
+    <ion-modal
+      :is-open="openReading"
+      :enter-animation="enterAnimation"
+      :leave-animation="leaveAnimation"
+    >
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ book.name }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button @click="setOpenReading(false)">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="init-book">
+          <p>
+            <span>Title:</span> <span>{{ props.data.title }}</span>
+          </p>
+          <p>
+            <span>Author:</span> <span> getAuthors(props.data.authors)</span>
+          </p>
+          <p>
+            <span>ID:</span> <span>{{ props.data.id }}</span>
+          </p>
+          <p>
+            <span>Link:</span>
+            <span>
+              <div v-if="!loadingBook">
+                <a :href="book.link" target="_blank">{{ book.link }}</a>
+              </div>
+              <ion-spinner v-else name="lines-sharp"></ion-spinner>
+            </span>
+          </p>
+        </div>
+        <div class="book-loading" v-if="loadingBook">
+          <ion-spinner name="lines-sharp"></ion-spinner>
+        </div>
+        <div v-else class="book-content" v-html="book.content"></div>
+        <!-- <iframe class="book-content" src="book.content" allowfullscreen> -->
+        <!-- </iframe> -->
+      </ion-content>
+    </ion-modal>
   </div>
 </template>
 
