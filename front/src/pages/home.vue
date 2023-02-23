@@ -1,13 +1,10 @@
 <script setup lang="ts">
   import {
     IonContent,
-    IonButton,
     IonPage,
     IonHeader,
     IonTitle,
     IonToolbar,
-    IonCard,
-    IonCardContent,
   } from "@ionic/vue";
 </script>
 

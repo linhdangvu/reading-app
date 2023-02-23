@@ -1,9 +1,6 @@
 <script setup lang="ts">
   import {
     IonContent,
-    IonButton,
-    IonButtons,
-    IonBackButton,
     IonPage,
     IonHeader,
     IonTitle,
@@ -15,10 +12,7 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-back-button></ion-back-button>
-        </ion-buttons>
-        <ion-title>Ranking</ion-title>
+        <ion-title>Top 10 hot search</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
