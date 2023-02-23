@@ -16,7 +16,7 @@ def getBooksData(listBooks):
     print("RUNNING function getBooksData")
     threaded_start = time.time()
     booksData = baseThreadPool(listBooks, getBooksThread, True)
-    print("END function getBooksData - {}".format(time.time() - threaded_start))
+    print("END function getBooksData -----> {}".format(time.time() - threaded_start))
     return booksData
 
 def getListBooks(listBooks):
@@ -35,5 +35,5 @@ def getListBooks(listBooks):
         return res
     allBooks = getBooksData(listBooks)    
     result = baseThreadPool(allBooks, transformData, True, 2) 
-    print("END function getListBooks", time.time() - threaded_start)
+    print("END function getListBooks -----> {}".format(time.time() - threaded_start))
     return result, allBooks
