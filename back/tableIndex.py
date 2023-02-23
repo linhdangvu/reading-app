@@ -6,6 +6,7 @@ from threading import Lock
 # get table index for all book and each book
 def getTableIndex(listBooks):
     print('RUNNING function getTableIndex')
+    threaded_start = time.time()
     tableIndex = dict()
     booksInfo = []
     listBooksData, allBooks = getListBooks(listBooks)
@@ -38,10 +39,7 @@ def getTableIndex(listBooks):
                 occurentCounts[w] = 1
             lock.release()
 
-        # print("START Thread filterBooks")
-        # threaded_filter_book = time.time()
         baseThreadPool(words, filterBooks, False)
-        # print("END Thread filterBooks:", time.time() - threaded_filter_book)
 
         return {
             "bookId": book['id'],
@@ -49,12 +47,7 @@ def getTableIndex(listBooks):
             "totalWords": len(words),
             "totalWordsWithOccur": len(occurentCounts)
         }
-    
-    print("START Thread readBook")
-    threaded_start = time.time()
-
     booksInfo = baseThreadPool(listBooksData, readBook, True)
-    print("END Thread readBook:", time.time() - threaded_start)
 
-    print('END function getTableIndex')
+    print('END function getTableIndex -----> {}'.format(time.time() - threaded_start))
     return tableIndex, booksInfo, allBooks
