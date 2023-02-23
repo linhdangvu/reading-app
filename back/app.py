@@ -27,7 +27,7 @@ closenessDataObject = dict({"data": [],"status" : True})
 tableIndexDataObject =   dict({"data": dict(),"status" : True})
 loadingBack = dict({"status": True})
 lastReadingBook = dict({"bookId": None, "data": "", "link": ""})
-
+lastClickedBook = dict({"bookId": None, "status" : True})
 
 def create_app(debug=True):
 
@@ -57,17 +57,13 @@ def create_app(debug=True):
             closenessDataObject['data'] = getMatrixCloseness(tableIndexDataObject['data'])
             closenessDataObject['status'] = False
             loadingBack['status'] = False
-            print('END LOADING DATA - {}'.format(time.time() - loading_time))
+            print('END LOADING DATA ----------> {}'.format(time.time() - loading_time))
         return render_template("index.html")
 
     # try to get only 10 book
     @app.route('/getbooks', methods=['GET'])
     def get_books():
-        print("Running get_books")
-        # data = getBooksData(listBooks)
         return jsonify(allBooksoObject['data'])
-
-
         
     # get table index
     @app.route('/tableindex', methods=['GET'])
@@ -77,7 +73,8 @@ def create_app(debug=True):
     # Use Cosine to have suggestion & ranking
     @app.route('/cosine', methods=['GET'])
     def cosine():
-        print("Running cosine")
+        print("RUN ROUTE /cosine")
+        time_start = time.time()
         if rankingObject["status"] and not tableIndexDataObject['status']:
             ranking = []
             booksData = cosineSearchWord(historyWords, tableIndexDataObject['data'])
@@ -88,11 +85,14 @@ def create_app(debug=True):
                     ranking.append(getBooksThread(val))
             rankingObject["data"] = ranking
             rankingObject["status"] = False
+        print('END ROUTE /cosine ----------> {}'.format(time.time() - time_start))
         return jsonify(rankingObject["data"])
     
     # get most read by compare clicked book
     @app.route('/mostread', methods=['GET'])
     def most_read():
+        print("RUN ROUTE /mostread")
+        time_start = time.time()
         if mostReadObject['status']:
             sortedClickedBooks = dict(sorted(clickedBooks.items(),key=lambda x:x[1], reverse=True) )
             ranking = []
@@ -103,12 +103,14 @@ def create_app(debug=True):
                     ranking.append(getBooksThread(val))
             mostReadObject["data"] = ranking
             mostReadObject["status"] = False
+        print('END ROUTE /mostread ----------> {}'.format(time.time() - time_start))
         return jsonify(mostReadObject['data'])
 
 
     @app.route('/lastsearch', methods=['GET'])
     def last_search():
-        print('Running last search')
+        print('RUN ROUTE /lastsearch')
+        time_start = time.time()
         if lastSearchObject["status"]:
             lastSearch = lastSearchWord["word"]
             sortedBooks = dict()
@@ -117,11 +119,14 @@ def create_app(debug=True):
                 sortedBooks = dict(sorted(tableIndexDataObject['data'][lastSearch].items(),key=lambda x:x[1], reverse=True))
             lastSearchObject["data"] = getBooksData(list(sortedBooks.keys()))
             lastSearchObject["status"] = False
+            print('END ROUTE /lastsearch ----------> {}'.format(time.time() - time_start))
         return jsonify(lastSearchObject["data"])
 
+    # This route for suggest data from the last search keyword
     @app.route('/suggestion', methods=['GET'])
     def suggestion():
-        print('RUN ROUTE suggestion')
+        print('RUN ROUTE /suggestion')
+        threaded_start = time.time()
         if suggestionObject["status"] and not tableIndexDataObject['status'] and not closenessDataObject['status']:
             # Init variable
             lastSearch = lastSearchWord["word"]
@@ -129,9 +134,7 @@ def create_app(debug=True):
             suggestionBooks = []
             lock = Lock()
             
-            print("Last search" , lastSearch)
             if tableIndexDataObject['data'].get(lastSearch)!=None and lastSearch != "":
-                # print(jsonify(tableIndexData[word]))
                 sortedBooks = dict(sorted(tableIndexDataObject['data'][lastSearch].items(),key=lambda x:x[1], reverse=True))
 
             def checkCloseness(closenessPos, suggestionBooks, sortedBooks):
@@ -153,28 +156,25 @@ def create_app(debug=True):
                             suggestionBooks.append(closenessDataObject['data'][id-1]['bookId']) 
                 lock.release()
 
-            print("START thread getSuggestion")
-            threaded_start = time.time()
-            # booksData = []
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 futures = []
                 for id,closeData in enumerate(closenessDataObject['data']):
                     futures.append(executor.submit(getSuggestion, id,closeData))
-            print("END thread getSuggestion", time.time() - threaded_start)
 
             suggestionObject["data"] = getBooksData(suggestionBooks)     
             suggestionObject["status"] = False
-        print('END ROUTE suggestion')
+        print('END ROUTE /suggestion ----------> {}'.format(time.time() - threaded_start))
         return jsonify(suggestionObject["data"])
     
     #############################################
     # ---------- GET WITH PARAMETERS ---------- #
     #############################################
 
-    # find book with keyword
+    # This route for find books with <word> in table index
     @app.route('/searchbook/<word>', methods=['GET'])
     def search_books(word):
-        print("Running search_books POST")
+        print("RUN ROUTE /searchbook/<word>")
+        time_start = time.time()
         if not tableIndexDataObject['status']:
             if tableIndexDataObject['data'].get(word)!=None:
                 # print(jsonify(tableIndexData[word]))
@@ -183,23 +183,21 @@ def create_app(debug=True):
                 return jsonify(bookData)
             else:
                 return "NOT_FOUND"
+        print("END ROUTE /searchbook/<word> ----------> {}".format(time.time() - time_start))
         return "NO TABLE INDEX AVAILABLE"
     
+    # This route for reading book from book id <bookId>
     @app.route('/readbookcontent/<bookId>')
     def read_book_content(bookId):
-        print("RUN ROUTE readbookcontent")
+        print("RUN ROUTE /readbookcontent/<bookId>")
+        time_start = time.time()
         if lastReadingBook['bookId'] != bookId:
             book_data = getBooksThread(bookId)
             for format in book_data['formats'].keys():
-                if '.htm' in book_data['formats'][format]:
+                if '.htm' in book_data['formats'][format] or '.html.images' in book_data['formats'][format]:
                     lastReadingBook['link'] = book_data['formats'][format]
                     response_API = requests.get(book_data['formats'][format])
-                    lastReadingBook['data'] = response_API.text
-                elif '.html.images' in book_data['formats'][format]:
-                    lastReadingBook['link'] = book_data['formats'][format]
-                    response_API = requests.get(book_data['formats'][format])
-                    lastReadingBook['data'] = response_API.text
-                    
+                    lastReadingBook['data'] = response_API.text 
             lastReadingBook['bookId'] = bookId
 
         pattern = re.compile(r'<body>(.*?)</body>', re.DOTALL)
@@ -208,9 +206,8 @@ def create_app(debug=True):
         if result:
             body_content = result.group(1)
             replace_image = body_content.replace('images/', 'https://www.gutenberg.org/cache/epub/{}/images/'.format(bookId))
-            # print(body_content)
             lastReadingBook['data'] = replace_image
-        print("END ROUTE readbookcontent")
+        print("END ROUTE /readbookcontent/<bookId> ----------> {}".format(time.time() - time_start))
         return jsonify({ "link": lastReadingBook['link'],'textHtml' : lastReadingBook['data']})
         
 
@@ -222,7 +219,8 @@ def create_app(debug=True):
     @app.route('/searchdata', methods=['POST', 'GET'])
     @cross_origin(origin='*',headers=['content-type'])
     def search_data():
-        print("Running search_data with keyword")
+        print("RUN ROUTE /searchdata")
+        time_start = time.time()
         if request.method == 'POST':
             word = request.json['word']
             lowerWord = word.lower()
@@ -234,21 +232,25 @@ def create_app(debug=True):
             lastSearchObject["status"] = True
             suggestionObject["status"] = True
             rankingObject["status"] = True
+        print("END ROUTE /searchdata ----------> {}".format(time.time() - time_start))
         return jsonify(historyWords)
     
     @app.route('/clickedbooks', methods=['POST','GET'])
     @cross_origin(origin='*',headers=['content-type'])
     def clicked_books():
-        print("RUN ROUTE clicked_books")
+        print("RUN ROUTE /clickedbooks")
+        time_start = time.time()
         if request.method == 'POST':
             bookId = request.json['bookId']
+            # lastClickedBook['bookId'] = bookId
+            # lastClickedBook['status'] = True
             # lastSearchWord["word"] = lowerWord
             if bookId in clickedBooks:
                 clickedBooks[bookId] += 1
             else:
                 clickedBooks[bookId] = 1
             mostReadObject["status"] = True
-        print("END ROUTE clicked_books")
+        print("END ROUTE /clickedbooks ----------> {}".format(time.time() - time_start))
         return jsonify(clickedBooks)
     
     #################################################
@@ -259,7 +261,6 @@ def create_app(debug=True):
     @app.route('/tindex', methods=['GET'])
     def tindex():
         return jsonify(tableIndexDataObject['data'])
-    
 
     ###########################################
     # ---------- NOT USING FOR NOW ---------- #
@@ -285,7 +286,6 @@ def create_app(debug=True):
         # print(booksData)
         return jsonify(ranking)
         # return jsonify(sendBookId, booksData, historyWords)
-            
     return app
 
 app = create_app(debug=True)

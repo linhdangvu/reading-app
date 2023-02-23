@@ -27,7 +27,7 @@ def cosineSearchWord(historyWords, tableIndexData):
 
     sortedBooks = dict(sorted(result.items(),key=lambda x:x[1], reverse=True))
 
-    print("END function cosineSearchWord - {}".format(time.time() - threaded_start))
+    print("END function cosineSearchWord -----> {}".format(time.time() - threaded_start))
     return sortedBooks
 
 def getMatrixCloseness(tableIndexData):
@@ -56,13 +56,10 @@ def getMatrixCloseness(tableIndexData):
 
     # Loop 1 thread
     def closenessThread1(b1):
-        # print("Running closenessThread1:")
-        # threaded_closeness_1= time.time()
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
             for b2 in list(booksData.keys()):
                 futures.append(executor.submit(getCloseness, b1,b2))
-        # print("End closenessThread1", time.time() - threaded_closeness_1)
     baseThreadPool(list(booksData.keys()), closenessThread1)
 
     # Create the graph representing the reading app
@@ -78,5 +75,5 @@ def getMatrixCloseness(tableIndexData):
         closenessData.append({"bookId": node, "closeness":closeness })
 
     sortedClosenessData = sorted(closenessData, key=lambda d: d['closeness'], reverse=True) 
-    print("END function getMatrixCloseness - {}".format(time.time() - threaded_start))
+    print("END function getMatrixCloseness -----> {}".format(time.time() - threaded_start))
     return sortedClosenessData
