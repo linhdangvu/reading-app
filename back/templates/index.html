@@ -74,52 +74,93 @@
       <h3 class="methods-title">GET</h3>
       <div class="container">
         <div class="methods-container">
-          <span>Get all books (10 books)</span>
-          <a href="/getbooks">http://127.0.0.1:5000/getbooks </a>
-        </div>
-
-        <div class="methods-container">
-          <span>Find books with keyword = `saigon`</span>
-          <a href="/searchbook/saigon"
-            >http://127.0.0.1:5000/searchbook/saigon</a
-          >
+          <span>Get all books</span>
+          <a target="_blank" href="/getbooks"
+            >http://127.0.0.1:5000/getbooks
+          </a>
         </div>
 
         <div class="methods-container">
           <span
             >Get list of keys of table index with more than 3 caracteres</span
           >
-          <a href="/tableindex">http://127.0.0.1:5000/tableindex</a>
+          <a target="_blank" href="/tableindex"
+            >http://127.0.0.1:5000/tableindex</a
+          >
         </div>
 
         <div class="methods-container">
           <span>Get the hot search by cosine simularity</span>
-          <a href="/cosine">http://127.0.0.1:5000/cosine</a>
+          <a target="_blank" href="/cosine">http://127.0.0.1:5000/cosine</a>
         </div>
 
         <div class="methods-container">
           <span
             >Get the hot search by jaccard simularity (not working well)</span
           >
-          <a href="/jaccard">http://127.0.0.1:5000/jaccard</a>
+          <a target="_blank" href="/jaccard">http://127.0.0.1:5000/jaccard</a>
         </div>
 
         <div class="methods-container">
-          <span>Get list of suggestion by using closeness centrality</span>
-          <a href="/suggestion">http://127.0.0.1:5000/suggestion</a>
+          <span
+            >Get books list of suggestion by using closeness centrality</span
+          >
+          <a target="_blank" href="/suggestion"
+            >http://127.0.0.1:5000/suggestion</a
+          >
+        </div>
+
+        <div class="methods-container">
+          <span>Get books list of the last search keyword</span>
+          <a target="_blank" href="/lastsearch"
+            >http://127.0.0.1:5000/lastsearch</a
+          >
         </div>
 
         <div class="methods-container">
           <span>Get list of table index</span>
-          <a href="/tindex">http://127.0.0.1:5000/tindex</a>
+          <a target="_blank" href="/tindex">http://127.0.0.1:5000/tindex</a>
         </div>
 
         <div class="methods-container">
           <span>Get list of informations for every books</span>
-          <a href="/itbook">http://127.0.0.1:5000/itbook</a>
+          <a target="_blank" href="/itbook">http://127.0.0.1:5000/itbook</a>
+        </div>
+
+        <div class="methods-container">
+          <span>Show history searched words</span>
+          <a target="_blank" href="/searchdata"
+            >http://127.0.0.1:5000/searchdata</a
+          >
+        </div>
+
+        <div class="methods-container">
+          <span>Show most read books</span>
+          <a target="_blank" href="/mostread">http://127.0.0.1:5000/mostread</a>
         </div>
       </div>
     </div>
+
+    <!-- <div class="divider"></div> -->
+    <div class="methods">
+      <h3 class="methods-title">GET with marameter</h3>
+      <div class="container">
+        <div class="methods-container">
+          <span>Find books with keyword = `saigon`</span>
+          <a target="_blank" href="/searchbook/saigon"
+            >http://127.0.0.1:5000/searchbook/saigon</a
+          >
+        </div>
+
+        <div class="methods-container">
+          <span>Find book content with keyword = `2`</span>
+          <a target="_blank" href="/readbookcontent/2"
+            >http://127.0.0.1:5000/readbookcontent/2</a
+          >
+        </div>
+      </div>
+    </div>
+
     <!-- <div class="divider"></div> -->
     <div class="methods">
       <h3 class="methods-title">POST</h3>
@@ -127,7 +168,9 @@
         <div class="methods-container">
           <span>Send keyword to find books </span>
 
-          <a href="/searchdata">http://127.0.0.1:5000/searchdata </a>
+          <a target="_blank" href="/searchdata"
+            >http://127.0.0.1:5000/searchdata
+          </a>
         </div>
         <div class="search-form">
           <span>Try this request: </span>
@@ -137,11 +180,28 @@
         <div class="result-form">
           <span id="result"></span>
         </div>
+
+        <div class="methods-container">
+          <span>Send book id to have ranking of the most clicked </span>
+
+          <a target="_blank" href="/clickedbooks"
+            >http://127.0.0.1:5000/clickedbooks
+          </a>
+        </div>
+        <div class="search-form">
+          <span>Try this request: </span>
+          <input id="clicked-book" type="number" />
+          <button id="btn-send-book" onclick="sendClickedWord()">Send</button>
+        </div>
+        <div class="result-form">
+          <span id="result-clicked"></span>
+        </div>
       </div>
     </div>
 
     <script>
       var searchWord = document.getElementById("search");
+      var clickedBook = document.getElementById("clicked-book");
 
       async function sendWord() {
         try {
@@ -157,11 +217,25 @@
         }
       }
 
+      async function sendClickedWord() {
+        try {
+          const data = await axios.post("http://127.0.0.1:5000/clickedBooks", {
+            bookId: clickedBook.value,
+          });
+          console.log(data);
+          document.getElementById("result-clicked").innerHTML =
+            "Result: " + JSON.stringify(data.data);
+          // alert("Send word succesfully");
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
       searchWord.addEventListener("keypress", function (event) {
         // If the user presses the "Enter" key on the keyboard
         if (event.key === "Enter") {
           event.preventDefault();
-          document.getElementById("btn-send").click();
+          document.getElementById("btn-send-book").click();
         }
       });
     </script>

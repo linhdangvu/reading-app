@@ -1,43 +1,37 @@
 <script setup lang="ts">
   import {
-    IonCard,
-    IonCardContent,
-    IonCardHeader,
-    IonCardSubtitle,
-    IonCardTitle,
-    IonChip,
     IonSearchbar,
     IonSkeletonText,
     IonItem,
     IonList,
     IonLabel,
     IonSpinner,
+    IonCard,
   } from "@ionic/vue";
-  import { onMounted, watchEffect } from "@vue/runtime-core";
+  import { onMounted } from "@vue/runtime-core";
   import { computed, ref } from "vue";
   import sleep from "../../utils/sleep";
   import { getBooks, sendSearchData } from "../../composable/useApi";
-  import axios from "axios";
   import { useRanking } from "../../stores/ranking";
+  import { levenshteinDistance } from "../../utils/leveashtein";
 
   /* INITIAL VARIABLE */
   const isLoading = ref(true);
+  const loadingLastSearch = ref(true);
   const loadingTableIndex = ref(false);
-  const showSuggestion = ref(false);
   const search = ref("");
   const inputSearch = ref("");
   let booksData: any[] | string = [];
-  const keyword = ref("");
   let tableIndexList: string[] = [];
   const rank = useRanking();
-  const errorSearch = ref("Welcome, let try search");
+  const errorSearch = ref("Welcome, let search some books");
+  let lastSearchList: any[] = [];
 
   /* ----------- MOUNTED ---------- */
   onMounted(async () => {
     isLoading.value = true;
     try {
       // booksData = await getBooks("http://127.0.0.1:5000/getbooks");
-
       isLoading.value = false;
     } catch (e: any) {
       console.log(e);
@@ -45,24 +39,20 @@
   });
 
   onMounted(async () => {
+    await getSearchData();
+  });
+
+  onMounted(async () => {
     loadingTableIndex.value = true;
     try {
       tableIndexList = await getBooks("http://127.0.0.1:5000/tableindex");
-      // console.log(tableIndexList);
       loadingTableIndex.value = false;
     } catch (e: any) {
       console.log(e);
     }
   });
 
-  /* FUNCTIONS */
-  const checkTextLong = (text: string) => {
-    if (text.split("").length >= 50) {
-      return text.slice(0, 51) + "...";
-    }
-    return text;
-  };
-
+  /* ---------- FUNCTIONS ---------- */
   const searchByWords = async (words: string) => {
     search.value = "";
     isLoading.value = true;
@@ -71,11 +61,14 @@
       booksData = await getBooks("http://127.0.0.1:5000/searchbook/" + words);
       // console.log(booksData);
       if (booksData !== "NOT_FOUND") {
-        await sendSearchData("http://127.0.0.1:5000/searchdata", words);
+        await sendSearchData("http://127.0.0.1:5000/searchdata", {
+          word: words,
+        });
         rank.setLoadingRank(true);
       }
       await sleep(10);
       isLoading.value = false;
+      await getSearchData();
     } catch (e: any) {
       console.log(e);
     }
@@ -85,7 +78,7 @@
   const handleEnterSearch = async (event: any) => {
     const query = event.target.value.toLowerCase();
     if (query === "") {
-      errorSearch.value = "Please write sth to search";
+      errorSearch.value = "Please write something to search";
     } else {
       searchByWords(query);
     }
@@ -102,15 +95,23 @@
     search.value = query;
   };
 
-  /* COMPUTED */
+  const getSearchData = async () => {
+    loadingLastSearch.value = true;
+    try {
+      lastSearchList = await getBooks("http://127.0.0.1:5000/lastsearch");
+      loadingLastSearch.value = false;
+    } catch (e: any) {
+      console.log(e);
+    }
+  };
+
+  /* ---------- COMPUTED ---------- */
   const allBooksData = computed(() => {
     if (!isLoading.value) {
-      // console.log(booksData);
       if (booksData === "NOT_FOUND") {
         errorSearch.value = "NO BOOK FOUND";
         return [];
       }
-
       return booksData;
     }
     return [];
@@ -139,15 +140,38 @@
     return [];
   });
 
-  watchEffect(() => {
-    console.log("watch from search", inputSearch.value);
+  const autoCompleteData = computed(() => {
+    if (search.value && searchData.value.length === 0) {
+      // do auto comptele
+      const filterDistance = allTableIndexData.value.map((item: string) => {
+        return {
+          word: item,
+          distance: levenshteinDistance(search.value, item),
+        };
+      });
+
+      filterDistance.sort((a: any, b: any) => a.distance - b.distance);
+
+      // console.log("Check", filterDistance);
+      return filterDistance.length > 5
+        ? filterDistance.slice(0, 5)
+        : filterDistance;
+    }
+    return [];
+  });
+
+  const lastSearchData = computed(() => {
+    if (!loadingLastSearch.value) {
+      return lastSearchList;
+    }
+    return [];
   });
 </script>
 
 <template>
   <div>
     <div v-if="!loadingTableIndex">
-      <!-- debounce to to wait 1000 to search       -->
+      <!-- debounce to to wait 1000 to search -->
       <ion-searchbar
         @ionInput="handleInputSearch($event)"
         @keyup.enter="handleEnterSearch($event)"
@@ -155,6 +179,7 @@
       ></ion-searchbar>
       <ion-list v-if="searchData.length !== 0">
         <ion-item
+          button
           v-for="item in searchData"
           :key="item"
           @click="handleClickSearch(item)"
@@ -162,6 +187,20 @@
           <ion-label>{{ item }}</ion-label>
         </ion-item>
       </ion-list>
+
+      <div v-else-if="autoCompleteData.length !== 0 && searchData.length === 0">
+        <h5 class="search-title">Do you mean this word ?</h5>
+        <ion-list>
+          <ion-item
+            button
+            v-for="(item, id) in autoCompleteData"
+            :key="id"
+            @click="handleClickSearch(item.word)"
+          >
+            <ion-label>{{ item.word }}</ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
     </div>
     <div v-else>
       <ion-skeleton-text
@@ -170,55 +209,44 @@
       ></ion-skeleton-text>
     </div>
 
+    <!-- BOOKS LIST -->
     <div class="book-loading" v-if="isLoading">
       <ion-spinner name="lines-sharp"></ion-spinner>
     </div>
     <div v-else>
-      <div v-if="allBooksData.length !== 0" class="book-cards">
-        <ion-card v-for="item in allBooksData" :key="item.id" class="book-card">
-          <img :alt="item.title" :src="item.formats['image/jpeg']" />
-          <ion-card-header>
-            <ion-card-title>{{ checkTextLong(item.title) }}</ion-card-title>
-            <ion-card-subtitle>{{
-              item.authors.length !== 0 ? item.authors[0].name : "No author"
-            }}</ion-card-subtitle>
-          </ion-card-header>
+      <div class="book-cards" v-if="allBooksData.length !== 0">
+        <ion-card v-for="item in allBooksData" :key="item.id">
+          <BookCard :data="item" />
         </ion-card>
       </div>
-      <div v-else>
+      <div v-else class="error-search">
         <h4>{{ errorSearch }}</h4>
       </div>
+    </div>
+
+    <h3 class="search-title">Your last search</h3>
+    <div v-if="!loadingLastSearch">
+      <div
+        class="book-cards"
+        v-if="lastSearchList && lastSearchData.length !== 0"
+      >
+        <ion-card v-for="item in lastSearchData" :key="item.id">
+          <BookCard :data="item" />
+        </ion-card>
+      </div>
+      <div v-else class="error-search">
+        <h4>You haven't search anything yet.</h4>
+      </div>
+    </div>
+    <div v-else class="book-loading">
+      <ion-spinner name="lines-sharp"></ion-spinner>
     </div>
   </div>
 </template>
 
-<style scoped lang="scss">
-  .book-loading {
-    margin: 50% auto;
+<style scoped>
+  .search-title {
+    font-weight: 800;
     text-align: center;
-  }
-
-  .book-cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    .book-card {
-      width: 140px;
-
-      img {
-        width: 100%;
-        height: 200px;
-        border: solid 1px black;
-      }
-
-      ion-card-title {
-        font-size: 1rem;
-      }
-
-      ion-card-subtitle {
-        font-size: 0.8rem;
-      }
-    }
   }
 </style>

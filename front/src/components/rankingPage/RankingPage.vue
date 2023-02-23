@@ -1,34 +1,23 @@
 <script setup lang="ts">
   import {
-    IonCard,
-    IonCardContent,
-    IonCardHeader,
-    IonCardSubtitle,
-    IonCardTitle,
-    IonChip,
-    IonSearchbar,
-    IonSkeletonText,
-    IonItem,
-    IonList,
-    IonLabel,
     IonSpinner,
+    IonSegment,
+    IonSegmentButton,
+    IonLabel,
+    IonCard,
   } from "@ionic/vue";
-  import {
-    onMounted,
-    onUnmounted,
-    onUpdated,
-    watchEffect,
-  } from "@vue/runtime-core";
+  import { onMounted, watchEffect } from "@vue/runtime-core";
   import { computed, ref } from "vue";
-  import sleep from "../../utils/sleep";
-  import checkTextLong from "../../utils/useText";
+  // import sleep from "../../utils/sleep";
   import { getBooks } from "../../composable/useApi";
-  import axios from "axios";
   import { useRanking } from "../../stores/ranking";
 
   /* INITIAL VARIABLE */
   const isLoading = ref(true);
+  const loadindMostRead = ref(true);
+  const optionTop = ref("searched");
   let booksData: any[] | string = [];
+  let mostReadData: any[] | string = [];
   const rank = useRanking();
 
   /* ----------- MOUNTED ---------- */
@@ -36,8 +25,14 @@
     await getRankingBooks();
   });
 
-  onUnmounted(() => {
-    console.log("Ranking is unmount");
+  onMounted(async () => {
+    loadindMostRead.value = true;
+    try {
+      mostReadData = await getBooks("http://127.0.0.1:5000/mostread");
+      loadindMostRead.value = false;
+    } catch (e: any) {
+      console.log(e);
+    }
   });
 
   /* FUNCTIONS */
@@ -45,7 +40,6 @@
     isLoading.value = true;
     try {
       booksData = await getBooks("http://127.0.0.1:5000/cosine");
-
       isLoading.value = false;
     } catch (e: any) {
       console.log(e);
@@ -55,7 +49,6 @@
   /* COMPUTED */
   const allBooksData = computed(() => {
     if (!isLoading.value) {
-      // console.log(booksData);
       if (booksData === "NOT_FOUND") {
         return [];
       }
@@ -64,76 +57,64 @@
     return [];
   });
 
-  onUpdated(() => {
-    console.log("Update ranking", rank.loadingRank);
+  const allMostRead = computed(() => {
+    if (!loadindMostRead.value) {
+      return mostReadData;
+    }
+    return [];
   });
 
   watchEffect(async () => {
-    console.log("Watch ranking", rank.loadingRank);
+    // console.log("Watch ranking", rank.loadingRank);
     if (rank.loadingRank) {
       await getRankingBooks();
       rank.setLoadingRank(false);
     }
+
+    console.log(optionTop.value);
   });
 </script>
 
 <template>
   <div>
-    <div class="book-loading" v-if="isLoading">
-      <ion-spinner name="lines-sharp"></ion-spinner>
-    </div>
-    <div v-else>
-      <div v-if="allBooksData.length !== 0" class="book-cards">
-        <ion-card v-for="item in allBooksData" :key="item.id" class="book-card">
-          <img
-            v-if="item.formats"
-            :alt="item.title"
-            :src="item.formats['image/jpeg']"
-          />
-          <ion-card-header>
-            <ion-card-title v-if="item.title">{{
-              checkTextLong(item.title)
-            }}</ion-card-title>
-            <ion-card-subtitle v-if="item.authors">{{
-              item.authors.length !== 0 ? item.authors[0].name : "No author"
-            }}</ion-card-subtitle>
-          </ion-card-header>
-        </ion-card>
+    <ion-segment :value="optionTop">
+      <ion-segment-button value="searched" @click="optionTop = 'searched'">
+        <ion-label>Most searched</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="read" @click="optionTop = 'read'">
+        <ion-label>Most read</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+    <div v-if="optionTop === 'searched'" :key="optionTop">
+      <div class="book-loading" v-if="isLoading">
+        <ion-spinner name="lines-sharp"></ion-spinner>
       </div>
       <div v-else>
-        <h4>There a no ranking for now.</h4>
+        <div class="book-cards" v-if="allBooksData.length !== 0">
+          <ion-card v-for="item in allBooksData" :key="item.id">
+            <BookCard :data="item" />
+          </ion-card>
+        </div>
+        <div v-else class="error-search">
+          <h4>There are no data for most searched for now.</h4>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="optionTop === 'read'" :key="optionTop">
+      <div class="book-loading" v-if="loadindMostRead">
+        <ion-spinner name="lines-sharp"></ion-spinner>
+      </div>
+      <div v-else>
+        <div class="book-cards" v-if="allMostRead.length !== 0">
+          <ion-card v-for="item in allMostRead" :key="item.id">
+            <BookCard :data="item" />
+          </ion-card>
+        </div>
+        <div v-else class="error-search">
+          <h4>There are no data for most read for now.</h4>
+        </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-  .book-loading {
-    margin: 50% auto;
-    text-align: center;
-  }
-
-  .book-cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    .book-card {
-      width: 140px;
-
-      img {
-        width: 100%;
-        height: 200px;
-        border: solid 1px black;
-      }
-
-      ion-card-title {
-        font-size: 1rem;
-      }
-
-      ion-card-subtitle {
-        font-size: 0.8rem;
-      }
-    }
-  }
-</style>

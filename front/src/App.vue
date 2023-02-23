@@ -26,12 +26,12 @@
 
         <ion-tab-button tab="library" href="/ranking">
           <ion-icon :icon="library" />
-          <ion-label>Ranking</ion-label>
+          <ion-label>Top 10</ion-label>
         </ion-tab-button>
 
         <ion-tab-button tab="suggest" href="/suggest">
           <ion-icon :icon="radio" />
-          <ion-label>Suggest</ion-label>
+          <ion-label>Suggestion</ion-label>
         </ion-tab-button>
 
         <ion-tab-button tab="search" href="/search">
@@ -42,3 +42,16 @@
     </ion-tabs>
   </ion-page>
 </template>
+
+<style lang="scss">
+  .book-loading {
+    margin: 10% auto;
+    text-align: center;
+  }
+
+  .error-search {
+    margin: 10px auto;
+    padding: 30px 10px;
+    text-align: center;
+  }
+</style>
