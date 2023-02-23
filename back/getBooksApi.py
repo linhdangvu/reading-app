@@ -24,15 +24,17 @@ def getListBooks(listBooks):
     threaded_start = time.time()
     def transformData(d):
         res = []
-        if d.get('formats')!=None:
-            for t in d['formats'].keys():
-                checkEnd = d['formats'][t].split('.').pop()
-                if checkEnd == 'txt':
-                    res.append({
-                        'id': d['id'],
-                        'text_url': d['formats'][t]
-                    })
-        return res
+        # print(d)
+        if d != 'NOT_FOUND':
+            if d.get('formats')!=None:
+                for t in d['formats'].keys():
+                    checkEnd = d['formats'][t].split('.').pop()
+                    if checkEnd == 'txt':
+                        res.append({
+                            'id': d['id'],
+                            'text_url': d['formats'][t]
+                        })
+        return res 
     allBooks = getBooksData(listBooks)    
     result = baseThreadPool(allBooks, transformData, True, 2) 
     print("END function getListBooks -----> {}".format(time.time() - threaded_start))

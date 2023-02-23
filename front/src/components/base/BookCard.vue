@@ -150,7 +150,8 @@
             <span>Title:</span> <span>{{ props.data.title }}</span>
           </p>
           <p>
-            <span>Author:</span> <span> getAuthors(props.data.authors)</span>
+            <span>Author:</span>
+            <span> {{ getAuthors(props.data.authors) }}</span>
           </p>
           <p>
             <span>ID:</span> <span>{{ props.data.id }}</span>
@@ -159,7 +160,7 @@
             <span>Link:</span>
             <span>
               <div v-if="!loadingBook">
-                <a :href="book.link" target="_blank">{{ book.link }}</a>
+                <a :href="book.link" target="_blank">Go to link</a>
               </div>
               <ion-spinner v-else name="lines-sharp"></ion-spinner>
             </span>

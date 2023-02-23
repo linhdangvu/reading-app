@@ -13,7 +13,7 @@ from threading import Lock
 ##########################################
 # logging.basicConfig(level=logging.INFO)
 listBooks = [49345,56667,1,2,3,4,5,6,7]
-# listBooks = [l for l in range(1,20)]
+# listBooks = [l for l in range(1,10)]
 historyWords = dict()
 clickedBooks = dict()
 lastSearchWord = dict({"word": ""})
@@ -137,22 +137,22 @@ def create_app(debug=True):
             if tableIndexDataObject['data'].get(lastSearch)!=None and lastSearch != "":
                 sortedBooks = dict(sorted(tableIndexDataObject['data'][lastSearch].items(),key=lambda x:x[1], reverse=True))
 
-            def checkCloseness(closenessPos, suggestionBooks, sortedBooks):
-                return closenessPos not in suggestionBooks and closenessPos not in list(sortedBooks.keys())
+            def checkCloseness(closenessPos, suggestionBooks):
+                return closenessPos not in suggestionBooks
 
             def getSuggestion(id,closeData):
                 lock.acquire()
                 if closeData['bookId'] in list(sortedBooks.keys()):
                     if id==0:
-                        if checkCloseness(closenessDataObject['data'][id+1]['bookId'] , suggestionBooks, sortedBooks):
+                        if checkCloseness(closenessDataObject['data'][id+1]['bookId'] , suggestionBooks):
                             suggestionBooks.append(closenessDataObject['data'][id+1]['bookId']) 
                     elif id==len(closenessDataObject['data'])-1:
-                        if checkCloseness(closenessDataObject['data'][id-1]['bookId'] , suggestionBooks, sortedBooks):
+                        if checkCloseness(closenessDataObject['data'][id-1]['bookId'] , suggestionBooks):
                             suggestionBooks.append(closenessDataObject['data'][id-1]['bookId']) 
                     else:
-                        if checkCloseness(closenessDataObject['data'][id+1]['bookId'] , suggestionBooks, sortedBooks):
+                        if checkCloseness(closenessDataObject['data'][id+1]['bookId'] , suggestionBooks):
                             suggestionBooks.append(closenessDataObject['data'][id+1]['bookId']) 
-                        if checkCloseness(closenessDataObject['data'][id-1]['bookId'] , suggestionBooks, sortedBooks):
+                        if checkCloseness(closenessDataObject['data'][id-1]['bookId'] , suggestionBooks):
                             suggestionBooks.append(closenessDataObject['data'][id-1]['bookId']) 
                 lock.release()
 
@@ -160,8 +160,10 @@ def create_app(debug=True):
                 futures = []
                 for id,closeData in enumerate(closenessDataObject['data']):
                     futures.append(executor.submit(getSuggestion, id,closeData))
+            
+            top10Suggestion = suggestionBooks[0:10] if len(suggestionBooks) > 11 else suggestionBooks
 
-            suggestionObject["data"] = getBooksData(suggestionBooks)     
+            suggestionObject["data"] = getBooksData(top10Suggestion)
             suggestionObject["status"] = False
         print('END ROUTE /suggestion ----------> {}'.format(time.time() - threaded_start))
         return jsonify(suggestionObject["data"])
@@ -257,10 +259,15 @@ def create_app(debug=True):
     # ---------- SHOW SOME DATA TO CHECK ---------- #
     #################################################
 
-    # get all list of index
+    # SHOW FULL TABLE INDEX
     @app.route('/tindex', methods=['GET'])
     def tindex():
         return jsonify(tableIndexDataObject['data'])
+    
+    # SHOW FULL CLOSENESS
+    @app.route('/closeness', methods=['GET'])
+    def closeness():
+        return jsonify(closenessDataObject['data'])
 
     ###########################################
     # ---------- NOT USING FOR NOW ---------- #
