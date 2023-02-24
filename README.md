@@ -13,6 +13,7 @@ Sujet: https://www-apr.lip6.fr/~buixuan/files/mrecinsta2022/mrec_projet.pdf
 - Pour aller dans environement
 
   ```
+  virtualenv .env
   source .env/bin/activate
   ```
 
