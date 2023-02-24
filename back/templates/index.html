@@ -69,6 +69,45 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
     <h2 class="body-title">Welcome to back end of application Reading App</h2>
+
+    <div class="methods">
+      <h3 class="methods-title">GET some informations to test</h3>
+      <div class="container">
+        <div class="methods-container">
+          <span>Table index</span>
+          <a target="_blank" href="/tindex">http://127.0.0.1:5000/tindex</a>
+        </div>
+
+        <div class="methods-container">
+          <span>Closeness Centrality</span>
+          <a target="_blank" href="/closeness"
+            >http://127.0.0.1:5000/closeness</a
+          >
+        </div>
+
+        <div class="methods-container">
+          <span>Show history searched words</span>
+          <a target="_blank" href="/searchdata"
+            >http://127.0.0.1:5000/searchdata</a
+          >
+        </div>
+
+        <div class="methods-container">
+          <span>Show clicked books information</span>
+
+          <a target="_blank" href="/clickedbooks"
+            >http://127.0.0.1:5000/clickedbooks
+          </a>
+        </div>
+
+        <!-- <div class="methods-container">
+          <span>Get list of informations for every books (use for Jaccard but not working)</span>
+          <a target="_blank" href="/itbook">http://127.0.0.1:5000/itbook</a>
+        </div> -->
+      </div>
+    </div>
+    <!-- <div class="divider"></div> -->
+
     <div class="methods">
       <h3 class="methods-title">GET</h3>
       <div class="container">
@@ -93,12 +132,12 @@
           <a target="_blank" href="/cosine">http://127.0.0.1:5000/cosine</a>
         </div>
 
-        <div class="methods-container">
+        <!-- <div class="methods-container">
           <span
             >Get the hot search by jaccard simularity (not working well)</span
           >
           <a target="_blank" href="/jaccard">http://127.0.0.1:5000/jaccard</a>
-        </div>
+        </div> -->
 
         <div class="methods-container">
           <span
@@ -117,24 +156,7 @@
         </div>
 
         <div class="methods-container">
-          <span>Get list of table index</span>
-          <a target="_blank" href="/tindex">http://127.0.0.1:5000/tindex</a>
-        </div>
-
-        <div class="methods-container">
-          <span>Get list of informations for every books</span>
-          <a target="_blank" href="/itbook">http://127.0.0.1:5000/itbook</a>
-        </div>
-
-        <div class="methods-container">
-          <span>Show history searched words</span>
-          <a target="_blank" href="/searchdata"
-            >http://127.0.0.1:5000/searchdata</a
-          >
-        </div>
-
-        <div class="methods-container">
-          <span>Show most read books</span>
+          <span>Show most read books by counting the number of clicking</span>
           <a target="_blank" href="/mostread">http://127.0.0.1:5000/mostread</a>
         </div>
       </div>
@@ -142,7 +164,7 @@
 
     <!-- <div class="divider"></div> -->
     <div class="methods">
-      <h3 class="methods-title">GET with marameter</h3>
+      <h3 class="methods-title">GET with parameter</h3>
       <div class="container">
         <div class="methods-container">
           <span>Find books with keyword = `saigon`</span>

@@ -1,3 +1,5 @@
+# ----- THIS FUNCTION IS NOT WORKING FOR NOW ----- #
+
 def jaccardSimilarity(historyWords,booksInfo):
     booksData = []
     for book in booksInfo:

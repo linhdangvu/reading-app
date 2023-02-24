@@ -22,6 +22,7 @@
   import axios from "axios";
   import { sendSearchData } from "../../composable/useApi";
   import sleep from "../../utils/sleep";
+  import { CFA_STUDENTS_HOST } from "../../../src/stores/host";
 
   const props = defineProps<{
     data: Book;
@@ -91,12 +92,12 @@
 
     try {
       loadingBook.value = true;
-      await sendSearchData("http://127.0.0.1:5000/clickedbooks", {
+      await sendSearchData(CFA_STUDENTS_HOST + "/clickedbooks", {
         bookId: props.data.id,
       });
       await sleep(10);
       const data = await axios.get(
-        "http://127.0.0.1:5000/readbookcontent/" + props.data.id
+        CFA_STUDENTS_HOST + "/readbookcontent/" + props.data.id
       );
       // console.log(data);
       book.content = data.data.textHtml;
@@ -150,7 +151,8 @@
             <span>Title:</span> <span>{{ props.data.title }}</span>
           </p>
           <p>
-            <span>Author:</span> <span> getAuthors(props.data.authors)</span>
+            <span>Author:</span>
+            <span> {{ getAuthors(props.data.authors) }}</span>
           </p>
           <p>
             <span>ID:</span> <span>{{ props.data.id }}</span>
@@ -159,7 +161,7 @@
             <span>Link:</span>
             <span>
               <div v-if="!loadingBook">
-                <a :href="book.link" target="_blank">{{ book.link }}</a>
+                <a :href="book.link" target="_blank">Go to link</a>
               </div>
               <ion-spinner v-else name="lines-sharp"></ion-spinner>
             </span>
