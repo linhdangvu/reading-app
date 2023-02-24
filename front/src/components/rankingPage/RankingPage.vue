@@ -10,6 +10,7 @@
   import { computed, ref } from "vue";
   // import sleep from "../../utils/sleep";
   import { getBooks } from "../../composable/useApi";
+  import { CFA_STUDENTS_HOST } from "../../stores/host";
   import { useRanking } from "../../stores/ranking";
 
   /* INITIAL VARIABLE */
@@ -28,7 +29,7 @@
   onMounted(async () => {
     loadindMostRead.value = true;
     try {
-      mostReadData = await getBooks("http://127.0.0.1:5000/mostread");
+      mostReadData = await getBooks(CFA_STUDENTS_HOST + "/mostread");
       loadindMostRead.value = false;
     } catch (e: any) {
       console.log(e);
@@ -39,7 +40,7 @@
   const getRankingBooks = async () => {
     isLoading.value = true;
     try {
-      booksData = await getBooks("http://127.0.0.1:5000/cosine");
+      booksData = await getBooks(CFA_STUDENTS_HOST + "/cosine");
       isLoading.value = false;
     } catch (e: any) {
       console.log(e);
