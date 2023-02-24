@@ -14,6 +14,7 @@
   import { getBooks, sendSearchData } from "../../composable/useApi";
   import { useRanking } from "../../stores/ranking";
   import { levenshteinDistance } from "../../utils/leveashtein";
+  import { CFA_STUDENTS_HOST } from "../../stores/host";
 
   /* INITIAL VARIABLE */
   const isLoading = ref(true);
@@ -45,7 +46,7 @@
   onMounted(async () => {
     loadingTableIndex.value = true;
     try {
-      tableIndexList = await getBooks("http://127.0.0.1:5000/tableindex");
+      tableIndexList = await getBooks(CFA_STUDENTS_HOST + "/tableindex");
       loadingTableIndex.value = false;
     } catch (e: any) {
       console.log(e);
@@ -58,10 +59,10 @@
     isLoading.value = true;
     try {
       await sleep(10);
-      booksData = await getBooks("http://127.0.0.1:5000/searchbook/" + words);
+      booksData = await getBooks(CFA_STUDENTS_HOST + "/searchbook/" + words);
       // console.log(booksData);
       if (booksData !== "NOT_FOUND") {
-        await sendSearchData("http://127.0.0.1:5000/searchdata", {
+        await sendSearchData(CFA_STUDENTS_HOST + "/searchdata", {
           word: words,
         });
         rank.setLoadingRank(true);
@@ -98,7 +99,7 @@
   const getSearchData = async () => {
     loadingLastSearch.value = true;
     try {
-      lastSearchList = await getBooks("http://127.0.0.1:5000/lastsearch");
+      lastSearchList = await getBooks(CFA_STUDENTS_HOST + "/lastsearch");
       loadingLastSearch.value = false;
     } catch (e: any) {
       console.log(e);

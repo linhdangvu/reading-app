@@ -4,6 +4,7 @@
   import { computed, ref } from "vue";
   // import sleep from "../../utils/sleep";
   import { getBooks } from "../../../src/composable/useApi";
+  import { CFA_STUDENTS_HOST } from "../../stores/host";
 
   /* INITIAL VARIABLE */
   const isLoading = ref(true);
@@ -13,7 +14,7 @@
   onMounted(async () => {
     isLoading.value = true;
     try {
-      booksData = await getBooks("http://127.0.0.1:5000/suggestion");
+      booksData = await getBooks(CFA_STUDENTS_HOST + "/suggestion");
       isLoading.value = false;
     } catch (e: any) {
       console.log(e);
