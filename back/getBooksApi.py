@@ -2,7 +2,7 @@
 import time, json, requests
 from thread import baseThreadPool
 
-# request to get books
+# This function is to get a book from Gutendex
 def getBooksThread(bookId, timeout=10):
     response_API = requests.get('https://gutendex.com/books/{}'.format(bookId), timeout=timeout)
     data = response_API.text
@@ -12,6 +12,7 @@ def getBooksThread(bookId, timeout=10):
         return 'NOT_FOUND'
     return parse_json 
 
+# This function is to get a list of books from Gutendex by using Thread and function getBooksThread
 def getBooksData(listBooks):
     print("RUNNING function getBooksData")
     threaded_start = time.time()
@@ -19,6 +20,7 @@ def getBooksData(listBooks):
     print("END function getBooksData -----> {}".format(time.time() - threaded_start))
     return booksData
 
+# This function is to get text from book
 def getListBooks(listBooks):
     print("RUNNING function getListBooks")
     threaded_start = time.time()

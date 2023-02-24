@@ -40,6 +40,33 @@ def create_app(debug=True):
     CORS(app, resources={r'/*': {'origins': '*'}})
     app.config['CORS_HEADERS'] = 'Content-Type'
 
+    #############################################
+    # ----- SHOW SOME INFORMATION TO TEST ----- #
+    #############################################
+
+
+    
+
+    #################################################
+    # ---------- SHOW SOME DATA TO CHECK ---------- #
+    #################################################
+
+    # SHOW FULL TABLE INDEX
+    @app.route('/tindex', methods=['GET'])
+    def tindex():
+        return jsonify(tableIndexDataObject['data'])
+    
+    # SHOW FULL CLOSENESS
+    @app.route('/closeness', methods=['GET'])
+    def closeness():
+        return jsonify(closenessDataObject['data'])
+    
+    # get table index for each book
+    @app.route('/itbook', methods=['GET'])
+    def itbook():
+        return jsonify(booksInfoObject['data'])
+
+
 
     #############################
     # ---------- GET ---------- #
@@ -64,12 +91,12 @@ def create_app(debug=True):
     @app.route('/getbooks', methods=['GET'])
     def get_books():
         return jsonify(allBooksoObject['data'])
-        
-    # get table index
+    
+    # SHOW get keys of table index
     @app.route('/tableindex', methods=['GET'])
     def table_index():
         return jsonify(list(tableIndexDataObject['data'].keys()))
-    
+        
     # Use Cosine to have suggestion & ranking
     @app.route('/cosine', methods=['GET'])
     def cosine():
@@ -107,6 +134,7 @@ def create_app(debug=True):
         return jsonify(mostReadObject['data'])
 
 
+    #Show the data of the last search keyword
     @app.route('/lastsearch', methods=['GET'])
     def last_search():
         print('RUN ROUTE /lastsearch')
@@ -255,45 +283,30 @@ def create_app(debug=True):
         print("END ROUTE /clickedbooks ----------> {}".format(time.time() - time_start))
         return jsonify(clickedBooks)
     
-    #################################################
-    # ---------- SHOW SOME DATA TO CHECK ---------- #
-    #################################################
 
-    # SHOW FULL TABLE INDEX
-    @app.route('/tindex', methods=['GET'])
-    def tindex():
-        return jsonify(tableIndexDataObject['data'])
-    
-    # SHOW FULL CLOSENESS
-    @app.route('/closeness', methods=['GET'])
-    def closeness():
-        return jsonify(closenessDataObject['data'])
 
     ###########################################
     # ---------- NOT USING FOR NOW ---------- #
     ###########################################
 
-    # get table index for each book
-    @app.route('/itbook', methods=['GET'])
-    def itbook():
-        return jsonify(booksInfoObject['data'])
 
-    # Use Jaccard to have list of book suggestion and order it
-    @app.route('/jaccard', methods=['GET'])
-    def jaccard():
-        booksData = jaccardSimilarity(historyWords,booksInfoObject['data'])
 
-        # sortedBooks = sorted(booksData, key=lambda d: d['jaccard'], reverse=True) 
-        sendBookId = []
-        for sb in booksData:
-            if sb['jaccard'] > 0:
-                sendBookId.append(sb['bookId'])
-        top5 = sendBookId.slice(0,5)  if len(sendBookId) > 5 else sendBookId
-        ranking = getBooksData(top5)
-        # print(booksData)
-        return jsonify(ranking)
-        # return jsonify(sendBookId, booksData, historyWords)
-    return app
+    # # Use Jaccard to have list of book suggestion and order it
+    # @app.route('/jaccard', methods=['GET'])
+    # def jaccard():
+    #     booksData = jaccardSimilarity(historyWords,booksInfoObject['data'])
+
+    #     # sortedBooks = sorted(booksData, key=lambda d: d['jaccard'], reverse=True) 
+    #     sendBookId = []
+    #     for sb in booksData:
+    #         if sb['jaccard'] > 0:
+    #             sendBookId.append(sb['bookId'])
+    #     top5 = sendBookId.slice(0,5)  if len(sendBookId) > 5 else sendBookId
+    #     ranking = getBooksData(top5)
+    #     # print(booksData)
+    #     return jsonify(ranking)
+    #     # return jsonify(sendBookId, booksData, historyWords)
+    # return app
 
 app = create_app(debug=True)
 if __name__ == "__main__" :

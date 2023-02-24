@@ -11,13 +11,14 @@ def getTableIndex(listBooks):
     booksInfo = []
     listBooksData, allBooks = getListBooks(listBooks)
 
+    # This function read each book content to get table index
     def readBook(book):
         response_API = requests.get(book['text_url'])
         data = response_API.text
         lock = Lock()
 
         #### Option 1: Prendre seulement des mots avec carateres de 4 à 10
-        words = re.findall(r"[A-Za-z]{4,10}\w+", data)
+        words = re.findall(r"[A-Za-z]{4,20}\w+", data)
         occurentCounts = dict()
 
         def filterBooks(word):
