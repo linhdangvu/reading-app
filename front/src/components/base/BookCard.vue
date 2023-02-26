@@ -20,7 +20,7 @@
   } from "@ionic/vue";
   import { reactive, ref } from "vue";
   import axios from "axios";
-  import { sendSearchData } from "../../composable/useApi";
+  import { sendData } from "../../composable/useApi";
   import sleep from "../../utils/sleep";
   import { CFA_STUDENTS_HOST } from "../../../src/stores/host";
 
@@ -92,16 +92,16 @@
 
     try {
       loadingBook.value = true;
-      await sendSearchData(CFA_STUDENTS_HOST + "/clickedbooks", {
+      await sendData(CFA_STUDENTS_HOST + "/clickedbooks", {
         bookId: props.data.id,
       });
       await sleep(10);
-      const data = await axios.get(
-        CFA_STUDENTS_HOST + "/readbookcontent/" + props.data.id
-      );
+      const data = await sendData(CFA_STUDENTS_HOST + "/readbookcontent", {
+        bookId: props.data.id,
+      });
       // console.log(data);
-      book.content = data.data.textHtml;
-      book.link = data.data.link;
+      book.content = data.textHtml;
+      book.link = data.link;
       loadingBook.value = false;
     } catch (e: any) {
       console.log(e);
@@ -172,8 +172,8 @@
             <ion-spinner name="lines-sharp"></ion-spinner>
           </div>
           <div v-else class="book-content" v-html="book.content"></div>
-          <!-- <iframe class="book-content" src="book.content" allowfullscreen> -->
-          <!-- </iframe> -->
+
+          <div style="width: 100%; height: 50px"></div>
         </ion-content>
       </ion-modal>
     </div>
@@ -236,5 +236,10 @@
 
   .book-content {
     width: 90%;
+    // margin: 10px;
+  }
+
+  .ion-padding {
+    height: 90vh;
   }
 </style>
