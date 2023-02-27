@@ -11,7 +11,7 @@
   import { onMounted } from "@vue/runtime-core";
   import { computed, ref } from "vue";
   import sleep from "../../utils/sleep";
-  import { getBooks, sendSearchData } from "../../composable/useApi";
+  import { getBooks, sendData } from "../../composable/useApi";
   import { useRanking } from "../../stores/ranking";
   import { levenshteinDistance } from "../../utils/leveashtein";
   import { CFA_STUDENTS_HOST } from "../../stores/host";
@@ -59,14 +59,21 @@
     isLoading.value = true;
     try {
       await sleep(10);
+      // Search books with cosine
       booksData = await getBooks(CFA_STUDENTS_HOST + "/searchbook/" + words);
       // console.log(booksData);
+
+      // send history search
       if (booksData !== "NOT_FOUND") {
-        await sendSearchData(CFA_STUDENTS_HOST + "/searchdata", {
+        await sendData(CFA_STUDENTS_HOST + "/searchdata", {
           word: words,
         });
         rank.setLoadingRank(true);
+
+        // save to local storage
+        localStorage.setItem("last_search", words);
       }
+
       await sleep(10);
       isLoading.value = false;
       await getSearchData();
@@ -99,7 +106,14 @@
   const getSearchData = async () => {
     loadingLastSearch.value = true;
     try {
-      lastSearchList = await getBooks(CFA_STUDENTS_HOST + "/lastsearch");
+      const lastSearch = localStorage.getItem("last_search");
+      console.log(lastSearch);
+      if (lastSearch) {
+        lastSearchList = await getBooks(
+          CFA_STUDENTS_HOST + "/searchbook/" + lastSearch
+        );
+      }
+      console.log(lastSearchList);
       loadingLastSearch.value = false;
     } catch (e: any) {
       console.log(e);

@@ -1,5 +1,3 @@
-Try to connect back end
-inet 172.16.8.27 netmask 0xffffff00 broadcast 172.16.8.255
+### This is the Back of the reading app
 
-Back
-nc -v 172.16.8.27 5000
+- **Framework + Langage**: Flask + Python
