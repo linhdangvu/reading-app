@@ -20,7 +20,7 @@
   } from "@ionic/vue";
   import { reactive, ref } from "vue";
   import axios from "axios";
-  import { sendSearchData } from "../../composable/useApi";
+  import { sendData } from "../../composable/useApi";
   import sleep from "../../utils/sleep";
   import { CFA_STUDENTS_HOST } from "../../../src/stores/host";
 
@@ -92,16 +92,16 @@
 
     try {
       loadingBook.value = true;
-      await sendSearchData(CFA_STUDENTS_HOST + "/clickedbooks", {
+      await sendData(CFA_STUDENTS_HOST + "/clickedbooks", {
         bookId: props.data.id,
       });
       await sleep(10);
-      const data = await axios.get(
-        CFA_STUDENTS_HOST + "/readbookcontent/" + props.data.id
-      );
+      const data = await sendData(CFA_STUDENTS_HOST + "/readbookcontent", {
+        bookId: props.data.id,
+      });
       // console.log(data);
-      book.content = data.data.textHtml;
-      book.link = data.data.link;
+      book.content = data.textHtml;
+      book.link = data.link;
       loadingBook.value = false;
     } catch (e: any) {
       console.log(e);
@@ -131,54 +131,63 @@
       }}</ion-card-subtitle>
     </ion-card-header>
     <!-- <ion-button expand="block" @click="setOpenReading(true)">Open</ion-button> -->
+    <div style="width: 100%">
+      <ion-modal
+        class="my-modal"
+        :is-open="openReading"
+        :enter-animation="enterAnimation"
+        :leave-animation="leaveAnimation"
+      >
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>{{ book.name }}</ion-title>
+            <ion-buttons slot="end">
+              <ion-button @click="setOpenReading(false)">Close</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+          <div class="init-book">
+            <p>
+              <span>Title:</span> <span>{{ props.data.title }}</span>
+            </p>
+            <p>
+              <span>Author:</span>
+              <span> {{ getAuthors(props.data.authors) }}</span>
+            </p>
+            <p>
+              <span>ID:</span> <span>{{ props.data.id }}</span>
+            </p>
+            <p>
+              <span>Link:</span>
+              <span>
+                <div v-if="!loadingBook">
+                  <a :href="book.link" target="_blank">Go to link</a>
+                </div>
+                <ion-spinner v-else name="lines-sharp"></ion-spinner>
+              </span>
+            </p>
+          </div>
+          <div class="book-loading" v-if="loadingBook">
+            <ion-spinner name="lines-sharp"></ion-spinner>
+          </div>
+          <div v-else class="book-content" v-html="book.content"></div>
 
-    <ion-modal
-      :is-open="openReading"
-      :enter-animation="enterAnimation"
-      :leave-animation="leaveAnimation"
-    >
-      <ion-header>
-        <ion-toolbar>
-          <ion-title>{{ book.name }}</ion-title>
-          <ion-buttons slot="end">
-            <ion-button @click="setOpenReading(false)">Close</ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
-      <ion-content class="ion-padding">
-        <div class="init-book">
-          <p>
-            <span>Title:</span> <span>{{ props.data.title }}</span>
-          </p>
-          <p>
-            <span>Author:</span>
-            <span> {{ getAuthors(props.data.authors) }}</span>
-          </p>
-          <p>
-            <span>ID:</span> <span>{{ props.data.id }}</span>
-          </p>
-          <p>
-            <span>Link:</span>
-            <span>
-              <div v-if="!loadingBook">
-                <a :href="book.link" target="_blank">Go to link</a>
-              </div>
-              <ion-spinner v-else name="lines-sharp"></ion-spinner>
-            </span>
-          </p>
-        </div>
-        <div class="book-loading" v-if="loadingBook">
-          <ion-spinner name="lines-sharp"></ion-spinner>
-        </div>
-        <div v-else class="book-content" v-html="book.content"></div>
-        <!-- <iframe class="book-content" src="book.content" allowfullscreen> -->
-        <!-- </iframe> -->
-      </ion-content>
-    </ion-modal>
+          <div style="width: 100%; height: 50px"></div>
+        </ion-content>
+      </ion-modal>
+    </div>
   </div>
 </template>
 
 <style lang="scss">
+  .my-modal {
+    &::part(content) {
+      width: 100%;
+      height: 100vh;
+    }
+  }
+
   .book-cards {
     display: flex;
     flex-wrap: wrap;
@@ -227,5 +236,10 @@
 
   .book-content {
     width: 90%;
+    // margin: 10px;
+  }
+
+  .ion-padding {
+    height: 90vh;
   }
 </style>

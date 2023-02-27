@@ -10,9 +10,10 @@ Sujet: https://www-apr.lip6.fr/~buixuan/files/mrecinsta2022/mrec_projet.pdf
   cd back/
   ```
 
-- Pour aller dans environement
+- Pour aller dans environement ( for Mac )
 
   ```
+  virtualenv .env
   source .env/bin/activate
   ```
 
@@ -53,7 +54,7 @@ Sujet: https://www-apr.lip6.fr/~buixuan/files/mrecinsta2022/mrec_projet.pdf
 - Pour executer l'application
 
   ```
-  npm run dev --host 172.16.8.27
+  npm run dev
   ```
 
   ou
@@ -66,3 +67,33 @@ Sujet: https://www-apr.lip6.fr/~buixuan/files/mrecinsta2022/mrec_projet.pdf
 
 Installing env Python
 `virtualenv .env` -->
+
+### Netcat connection (same wireless)
+
+- For Mac
+
+1. Go to Terminal and type: `ìfconfig` and find the line below:
+
+   > inet **172.16.8.27** netmask 0xffffff00 broadcast 172.16.8.255
+
+2. Share Back for everyone have the same wireless by using netcat
+
+   - Host: **172.16.8.27**
+   - Port: **5000**
+
+   ```
+   nc -v 172.16.8.27 5000
+   ```
+
+3. Share BFrontack for everyone have the same wireless by using netcat
+
+   - Host: **172.16.8.27**
+   - Port: **5173**
+
+   ```
+   nc -v 172.16.8.27 5173
+   ```
+
+   > ##### Remarque:
+   >
+   > - Back & Front can't use the same port

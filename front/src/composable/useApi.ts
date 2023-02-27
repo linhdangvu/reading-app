@@ -16,7 +16,7 @@ export const getBooks = async (url: string) => {
   }
 };
 
-export const sendSearchData = async (url: string, data: any) => {
+export const sendData = async (url: string, data: any) => {
   try {
     const sendData = await axios.post(url, data, { headers: dataHeaders });
     console.log(sendData.data);

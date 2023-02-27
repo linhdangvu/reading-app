@@ -3,7 +3,7 @@
   import { onMounted } from "@vue/runtime-core";
   import { computed, ref } from "vue";
   // import sleep from "../../utils/sleep";
-  import { getBooks } from "../../../src/composable/useApi";
+  import { getBooks, sendData } from "../../../src/composable/useApi";
   import { CFA_STUDENTS_HOST } from "../../stores/host";
 
   /* INITIAL VARIABLE */
@@ -14,7 +14,9 @@
   onMounted(async () => {
     isLoading.value = true;
     try {
-      booksData = await getBooks(CFA_STUDENTS_HOST + "/suggestion");
+      booksData = await sendData(CFA_STUDENTS_HOST + "/suggestion", {
+        last_search: localStorage.getItem("last_search"),
+      });
       isLoading.value = false;
     } catch (e: any) {
       console.log(e);

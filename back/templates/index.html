@@ -142,22 +142,6 @@
         </div> -->
 
         <div class="methods-container">
-          <span
-            >Get books list of suggestion by using closeness centrality</span
-          >
-          <a target="_blank" href="/suggestion"
-            >http://127.0.0.1:5000/suggestion</a
-          >
-        </div>
-
-        <div class="methods-container">
-          <span>Get books list of the last search keyword</span>
-          <a target="_blank" href="/lastsearch"
-            >http://127.0.0.1:5000/lastsearch</a
-          >
-        </div>
-
-        <div class="methods-container">
           <span>Show most read books by counting the number of clicking</span>
           <a target="_blank" href="/mostread">http://127.0.0.1:5000/mostread</a>
         </div>
@@ -188,44 +172,70 @@
     <div class="methods">
       <h3 class="methods-title">POST</h3>
       <div class="container">
-        <div class="methods-container">
-          <span>Send keyword to find books </span>
+        <div>
+          <div class="methods-container">
+            <span>Send keyword to find books </span>
 
-          <a target="_blank" href="/searchdata"
-            >http://127.0.0.1:5000/searchdata
-          </a>
-        </div>
-        <div class="search-form">
-          <span>Try this request: </span>
-          <input id="search" />
-          <button id="btn-send" onclick="sendWord()">Send</button>
-        </div>
-        <div class="result-form">
-          <span id="result"></span>
+            <a target="_blank" href="/searchdata"
+              >http://127.0.0.1:5000/searchdata
+            </a>
+          </div>
+          <div class="search-form">
+            <span>Try this request: </span>
+            <input id="search" />
+            <button id="btn-send" onclick="sendWord()">Send</button>
+          </div>
+          <div class="result-form">
+            <span id="result"></span>
+          </div>
         </div>
 
-        <div class="methods-container">
-          <span>Send book id to have ranking of the most clicked </span>
+        <div>
+          <div class="methods-container">
+            <span>Send book id to have ranking of the most clicked </span>
 
-          <a target="_blank" href="/clickedbooks"
-            >http://127.0.0.1:5000/clickedbooks
-          </a>
+            <a target="_blank" href="/clickedbooks"
+              >http://127.0.0.1:5000/clickedbooks
+            </a>
+          </div>
+          <div class="search-form">
+            <span>Try this request: </span>
+            <input id="clicked-book" type="number" />
+            <button id="btn-send-book" onclick="sendClickedWord()">Send</button>
+          </div>
+          <div class="result-form">
+            <span id="result-clicked"></span>
+          </div>
         </div>
-        <div class="search-form">
-          <span>Try this request: </span>
-          <input id="clicked-book" type="number" />
-          <button id="btn-send-book" onclick="sendClickedWord()">Send</button>
-        </div>
-        <div class="result-form">
-          <span id="result-clicked"></span>
+
+        <div>
+          <div class="methods-container">
+            <span
+              >Send last keyword to get list of suggestion by using closeness
+              centrality</span
+            >
+            <a target="_blank" href="/suggestion"
+              >http://127.0.0.1:5000/suggestion</a
+            >
+          </div>
+
+          <div class="search-form">
+            <span>Try this request: </span>
+            <input id="last-search" />
+            <button id="btn-last-search" onclick="sendLastSearch()">
+              Send
+            </button>
+          </div>
+          <div class="result-form">
+            <span id="result-last-search"></span>
+          </div>
         </div>
       </div>
     </div>
 
     <script>
+      // SEARCH BOOKS BY KEYWORD -  POST
       var searchWord = document.getElementById("search");
-      var clickedBook = document.getElementById("clicked-book");
-
       async function sendWord() {
         try {
           const data = await axios.post("http://127.0.0.1:5000/searchdata", {
@@ -240,9 +250,19 @@
         }
       }
 
+      searchWord.addEventListener("keypress", function (event) {
+        // If the user presses the "Enter" key on the keyboard
+        if (event.key === "Enter") {
+          event.preventDefault();
+          document.getElementById("btn-send").click();
+        }
+      });
+
+      // CLICKED BOOKS - POST
+      var clickedBook = document.getElementById("clicked-book");
       async function sendClickedWord() {
         try {
-          const data = await axios.post("http://127.0.0.1:5000/clickedBooks", {
+          const data = await axios.post("http://127.0.0.1:5000/clickedbooks", {
             bookId: clickedBook.value,
           });
           console.log(data);
@@ -253,12 +273,37 @@
           console.log(e);
         }
       }
-
-      searchWord.addEventListener("keypress", function (event) {
+      clickedBook.addEventListener("keypress", function (event) {
         // If the user presses the "Enter" key on the keyboard
         if (event.key === "Enter") {
           event.preventDefault();
           document.getElementById("btn-send-book").click();
+        }
+      });
+
+      // LAST SEARCH FOR SUGGESTION - POST
+      var lastSearch = document.getElementById("last-search");
+
+      async function sendLastSearch() {
+        try {
+          const data = await axios.post("http://127.0.0.1:5000/suggestion", {
+            last_search: lastSearch.value,
+          });
+          console.log(data);
+          document.getElementById("result-last-search").innerHTML =
+            "Result books Id: " +
+            JSON.stringify(data.data.map((item) => item.id));
+          // alert("Send word succesfully");
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
+      lastSearch.addEventListener("keypress", function (event) {
+        // If the user presses the "Enter" key on the keyboard
+        if (event.key === "Enter") {
+          event.preventDefault();
+          document.getElementById("btn-last-search").click();
         }
       });
     </script>
