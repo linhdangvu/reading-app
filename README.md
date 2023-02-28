@@ -2,6 +2,11 @@
 
 Sujet: https://www-apr.lip6.fr/~buixuan/files/mrecinsta2022/mrec_projet.pdf
 
+Note:
+
+- [Front Explication](front/README.md)
+- [Back Explication](back/README.md)
+
 ### Partie Back
 
 - Pour aller dans environement
@@ -28,7 +33,7 @@ Sujet: https://www-apr.lip6.fr/~buixuan/files/mrecinsta2022/mrec_projet.pdf
   ```
   export FLASK_APP=app
   export FLASK_ENV=development
-  flask run --host=0.0.0.0 --port=5000
+  flask run --host=172.16.8.38 --port=5000
   ```
 
 ### Partie Front

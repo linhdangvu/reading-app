@@ -240,6 +240,6 @@
   }
 
   .ion-padding {
-    height: 90vh;
+    height: 92vh;
   }
 </style>

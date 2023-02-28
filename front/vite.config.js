@@ -15,7 +15,8 @@ export default defineConfig({
     //     rewrite: (path) => path.replace(/^\/reading/, ""),
     //   },
     // },
-    host: "192.168.1.20",
+    // A changer dependire
+    host: "172.16.8.38",
     port: 5173,
   },
   plugins: [
