@@ -1,8 +1,8 @@
-# Project Reading App
+# Projet Reading App
 
 Sujet: https://www-apr.lip6.fr/~buixuan/files/mrecinsta2022/mrec_projet.pdf
 
-Note:
+Remarque:
 
 - [Front Explication](front/README.md)
 - [Back Explication](back/README.md)
