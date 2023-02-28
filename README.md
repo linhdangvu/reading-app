@@ -68,7 +68,7 @@ Remarque:
   yarn dev
   ```
   
- - Pour changer host -> aller dans le fichier vite.config.ts
+ - Pour changer host -> aller dans le fichier **vite.config.ts** dans le Front
 
 ### Netcat connection (same wireless)
 
