@@ -1,8 +1,8 @@
-### This is the Front of the reading app
+### Le Front de reading app
 
 - **Framework + Langage**: Vue + Vite + Ionic + Typescript
 
-Dans cette application **READING APP**, on prends des livres depuis le **Back**
+Dans cette application **READING APP** ( **Front** ), on prends des livres depuis le **Back**
 
 - Pour la partie **Home**:
   > On récupéré tous les livres de **Back**
