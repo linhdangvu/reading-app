@@ -16,7 +16,7 @@ export default defineConfig({
     //   },
     // },
     // A changer dependire
-    host: "172.16.4.28",
+    host: "172.16.8.38",
     port: 5173,
   },
   plugins: [

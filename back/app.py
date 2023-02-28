@@ -12,8 +12,8 @@ from threading import Lock
 # ---------- INITIAL VARIABLE ---------- #
 ##########################################
 # logging.basicConfig(level=logging.INFO)
-# listBooks = [49345,56667,1,2,3,4,5,40,48]
-listBooks = [l for l in range(1,200)]
+listBooks = [49345,56667,1,2,3,4,5,40,48]
+# listBooks = [l for l in range(1,200)]
 books_10 = [listBooks[x:x+10] for x in range(0, len(listBooks), 10)]
 historyWords = dict()
 clickedBooks = dict()
