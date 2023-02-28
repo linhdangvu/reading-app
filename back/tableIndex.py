@@ -17,10 +17,10 @@ letters = ['before', 'behind', 'because', 'owning', 'without', 'inside', 'around
 commonWords = letters_3 + letters_4 + letters_5 + letters
 
 # get table index for all book and each book
-def getTableIndex(listBooks):
+def getTableIndex(listBooks, tableIndex):
     print('RUNNING function getTableIndex')
     threaded_start = time.time()
-    tableIndex = dict()
+    # tableIndex = dict()
     booksInfo = []
     listBooksData, allBooks = getListBooks(listBooks)
 

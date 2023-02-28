@@ -12,8 +12,9 @@ from threading import Lock
 # ---------- INITIAL VARIABLE ---------- #
 ##########################################
 # logging.basicConfig(level=logging.INFO)
-listBooks = [49345,56667,1,2,3,4,5,40,48]
-# listBooks = [l for l in range(1,50)]
+# listBooks = [49345,56667,1,2,3,4,5,40,48]
+listBooks = [l for l in range(1,200)]
+books_10 = [listBooks[x:x+10] for x in range(0, len(listBooks), 10)]
 historyWords = dict()
 clickedBooks = dict()
 suggestionObject = dict({"data": [],"status" : True})
@@ -29,7 +30,18 @@ def loadingData():
     if loadingBack['status']:
         print('START LOADING DATA')
         loading_time = time.time()
-        tableIndexDataObject['data'], booksInfoObject['data'], allBooksoObject['data'] = getTableIndex(listBooks)
+        count = 1
+        print('We will load {} time for {} books'.format(len(books_10), len(listBooks)))
+        for book in books_10:
+            print('Times --> {}'.format(count))
+            count += 1
+            bookInfo = []
+            allBooks = []
+            tableIndexDataObject['data'], bookInfo, allBooks = getTableIndex(book,  tableIndexDataObject['data'])
+            booksInfoObject['data'] += bookInfo
+            allBooksoObject['data'] += allBooks
+
+        # tableIndexDataObject['data'], booksInfoObject['data'], allBooksoObject['data'] = getTableIndex(listBooks)
         tableIndexDataObject['status'] = False
         booksInfoObject['status'] = False
         allBooksoObject['status'] = False
