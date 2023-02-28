@@ -67,11 +67,8 @@ Remarque:
   ```
   yarn dev
   ```
-
-<!-- ##### Ne concerne pas
-
-Installing env Python
-`virtualenv .env` -->
+  
+ - Pour changer host -> aller dans le fichier vite.config.ts
 
 ### Netcat connection (same wireless)
 
